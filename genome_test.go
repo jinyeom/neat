@@ -2,6 +2,7 @@ package neat
 
 import (
 	"fmt"
+	"testing"
 )
 
 func TestGenome(t *testing.T) {

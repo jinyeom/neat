@@ -25,19 +25,19 @@ func NewGenome(numSensors, numOutputs int) *Genome {
 	conns := make([]*ConnGene, 0, numConns)
 	// sensor nodes
 	for i := 0; i < numSensors; i++ {
-		nodes = append(nodes, NewNode(i, "sensor"))
+		nodes = append(nodes, NewNodeGene(i, "sensor", nil))
 	}
 	// output nodes and connections
-	nodes = append(nodes, NewNode(numNodes-1, "bias"))
-	for i := numSensor + 1; i < numNodes; i++ {
-		nodes = append(nodes, NewNode(i, "output"))
+	nodes = append(nodes, NewNodeGene(numNodes-1, "bias", nil))
+	for i := numSensors + 1; i < numNodes; i++ {
+		nodes = append(nodes, NewNodeGene(i, "output", nil))
 		// connect from input nodes to this node
 		for j := 0; j <= numSensors; j++ {
-			conns = append(conns, NewConn(j, i))
+			conns = append(conns, NewConnGene(0, j, i))
 		}
 	}
 
-	&Genome{
+	return &Genome{
 		numSensors: numSensors,
 		numOutputs: numOutputs,
 		numHidden:  0,
@@ -108,7 +108,7 @@ func (n *NodeGene) NID() int {
 }
 
 // NType returns the node's node type (NType).
-func (n *NodeGene) NType() int {
+func (n *NodeGene) NType() string {
 	return n.ntype
 }
 
