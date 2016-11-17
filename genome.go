@@ -3,9 +3,9 @@ package neat
 // Genome is an implementation of genotype of an evolving network;
 // it includes NodeGenes and ConnGenes.
 type Genome struct {
-	numSensor int // number of sensor nodes
-	numOutput int // number of output nodes
-	numHidden int // number of hidden nodes
+	numSensors int // number of sensor nodes
+	numOutputs int // number of output nodes
+	numHidden  int // number of hidden nodes
 
 	numNodes int // total number of nodes
 	numConns int // total number of connections
@@ -16,15 +16,15 @@ type Genome struct {
 
 // NewGenome creates a new genome in its initial state, it is
 // only consist of fully connected sensor nodes and output nodes.
-func NewGenome(numSensor, numOutput int) *Genome {
+func NewGenome(numSensors, numOutputs int) *Genome {
 	// number of nodes and connections including bias
-	numNodes := numSensor + 1 + numOutput
-	numConns := (numSensor + 1) * numOutput
+	numNodes := numSensors + 1 + numOutputs
+	numConns := (numSensors + 1) * numOutputs
 
 	nodes := make([]*NodeGene, 0, numNodes)
 	conns := make([]*ConnGene, 0, numConns)
 	// sensor nodes
-	for i := 0; i < numSensor; i++ {
+	for i := 0; i < numSensors; i++ {
 		nodes = append(nodes, NewNode(i, "sensor"))
 	}
 	// output nodes and connections
@@ -32,20 +32,55 @@ func NewGenome(numSensor, numOutput int) *Genome {
 	for i := numSensor + 1; i < numNodes; i++ {
 		nodes = append(nodes, NewNode(i, "output"))
 		// connect from input nodes to this node
-		for j := 0; j <= numSensor; j++ {
+		for j := 0; j <= numSensors; j++ {
 			conns = append(conns, NewConn(j, i))
 		}
 	}
 
 	&Genome{
-		numSensor: numSensor,
-		numOutput: numOutput,
-		numHidden: 0,
-		numNodes:  numNodes,
-		numConns:  numConns,
-		nodes:     nodes,
-		conns:     conns,
+		numSensors: numSensors,
+		numOutputs: numOutputs,
+		numHidden:  0,
+		numNodes:   numNodes,
+		numConns:   numConns,
+		nodes:      nodes,
+		conns:      conns,
 	}
+}
+
+// NumSensors returns the number of sensor nodes in the genome.
+func (g *Genome) NumSensors() int {
+	return g.numSensors
+}
+
+// NumOutputs returns the number of output nodes in the genome.
+func (g *Genome) NumOutputs() int {
+	return g.numOutputs
+}
+
+// NumHidden returns the number of hidden nodes in the genome.
+func (g *Genome) NumHidden() int {
+	return g.numHidden
+}
+
+// NumNodes returns the total number of nodes in the genome.
+func (g *Genome) NumNodes() int {
+	return g.numNodes
+}
+
+// NumConns returns the total number of connections in the genome.
+func (g *Genome) NumConns() int {
+	return g.numConns
+}
+
+// Nodes returns all nodes in the genome.
+func (g *Genome) Nodes() []*NodeGene {
+	return g.nodes
+}
+
+// Conns returns all connections in the genome.
+func (g *Genome) Conns() []*ConnGene {
+	return g.conns
 }
 
 // NodeGene is an implementation of each node within a genome.
@@ -67,6 +102,21 @@ func NewNodeGene(nid int, ntype string, afn *ActivationFunc) *NodeGene {
 	}
 }
 
+// NID returns the node's node ID (NID).
+func (n *NodeGene) NID() int {
+	return n.nid
+}
+
+// NType returns the node's node type (NType).
+func (n *NodeGene) NType() int {
+	return n.ntype
+}
+
+// Afn returns the node's activation function.
+func (n *NodeGene) Afn() *ActivationFunc {
+	return n.afn
+}
+
 // ConnGene is an implementation of each connection within a genome.
 // It represents a connection between an in-node and an out-node;
 // it contains an innovation number and nids of the in-node and the
@@ -85,4 +135,19 @@ func NewConnGene(innov, in, out int) *ConnGene {
 		in:    in,
 		out:   out,
 	}
+}
+
+// Innov returns the connection's innovation number.
+func (c *ConnGene) Innov() int {
+	return c.innov
+}
+
+// In returns the NID of in-node of the connection.
+func (c *ConnGene) In() int {
+	return c.in
+}
+
+// Out returns the NID of out-node of the connection.
+func (c *ConnGene) Out() int {
+	return c.out
 }
