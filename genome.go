@@ -35,9 +35,15 @@ for the Go code in this page.
 
 package neat
 
+import (
+	"math/rand"
+)
+
 // Genome is an implementation of genotype of an evolving network;
 // it includes NodeGenes and ConnGenes.
 type Genome struct {
+	innov int // innovation number
+
 	numSensors int // number of sensor nodes
 	numOutputs int // number of output nodes
 	numHidden  int // number of hidden nodes
@@ -52,6 +58,9 @@ type Genome struct {
 // NewGenome creates a new genome in its initial state, it is
 // only consist of fully connected sensor nodes and output nodes.
 func NewGenome(numSensors, numOutputs int) *Genome {
+	// initialize innovation number to 0
+	innov := 0
+
 	// number of nodes and connections including bias
 	numNodes := numSensors + 1 + numOutputs
 	numConns := (numSensors + 1) * numOutputs
@@ -68,11 +77,13 @@ func NewGenome(numSensors, numOutputs int) *Genome {
 		nodes = append(nodes, NewNodeGene(i, "output", nil))
 		// connect from input nodes to this node
 		for j := 0; j <= numSensors; j++ {
-			conns = append(conns, NewConnGene(0, j, i))
+			conns = append(conns, NewConnGene(innov, j, i))
+			innov++
 		}
 	}
 
 	return &Genome{
+		innov:      innov,
 		numSensors: numSensors,
 		numOutputs: numOutputs,
 		numHidden:  0,
@@ -118,6 +129,18 @@ func (g *Genome) Conns() []*ConnGene {
 	return g.conns
 }
 
+// MutateAddNode mutates the genome by adding a node between a
+// connection of two nodes.
+func (g *Genome) MutateAddNode() {
+
+}
+
+// MutateAddConn mutates the genome by adding a connection between
+// two nodes.
+func (g *Genome) MutateAddConn() {
+
+}
+
 // NodeGene is an implementation of each node within a genome.
 // Each node includes a node ID (NID), a node type (NType), and
 // a pointer to an activation function.
@@ -155,20 +178,25 @@ func (n *NodeGene) Afn() *ActivationFunc {
 // ConnGene is an implementation of each connection within a genome.
 // It represents a connection between an in-node and an out-node;
 // it contains an innovation number and nids of the in-node and the
-// out-node.
+// out-node, whether if the connection is disabled, and the weight
+// of the connection.
 type ConnGene struct {
-	innov int // innovation number
-	in    int // NID of in-node
-	out   int // NID of out-node
+	innov    int     // innovation number
+	in       int     // NID of in-node
+	out      int     // NID of out-node
+	disabled bool    // whether if the connection is true
+	weight   float64 // weight of connection
 }
 
 // NewConnGene creates a new connection gene with the given innovation
 // number, the in-node NID, and the out-node NID.
 func NewConnGene(innov, in, out int) *ConnGene {
 	return &ConnGene{
-		innov: innov,
-		in:    in,
-		out:   out,
+		innov:    innov,
+		in:       in,
+		out:      out,
+		disabled: false,
+		weight:   rand.NormFloat64(),
 	}
 }
 
@@ -185,4 +213,14 @@ func (c *ConnGene) In() int {
 // Out returns the NID of out-node of the connection.
 func (c *ConnGene) Out() int {
 	return c.out
+}
+
+// IsDisabled indicates whether the connection is disabled.
+func (c *ConnGene) IsDisabled() bool {
+	return c.disabled
+}
+
+// Weight returns the connection's weight.
+func (c *ConnGene) Weight() float64 {
+	return c.weight
 }
