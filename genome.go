@@ -53,6 +53,8 @@ type Genome struct {
 
 	nodes []*NodeGene // collection of node genes
 	conns []*ConnGene // collection of connection genes
+
+	fitness float64 // fitness value of the genome
 }
 
 // NewGenome creates a new genome in its initial state, it is
