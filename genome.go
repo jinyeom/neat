@@ -42,7 +42,9 @@ import (
 // Genome is an implementation of genotype of an evolving network;
 // it includes NodeGenes and ConnGenes.
 type Genome struct {
-	innov int // innovation number
+	// internal counter for nodes and connections
+	ncount int // node counter
+	innov  int // innovation number
 
 	numSensors int // number of sensor nodes
 	numOutputs int // number of output nodes
@@ -59,8 +61,9 @@ type Genome struct {
 
 // NewGenome creates a new genome in its initial state, it is
 // only consist of fully connected sensor nodes and output nodes.
-func NewGenome(numSensors, numOutputs int) *Genome {
+func NewGenome(id, numSensors, numOutputs int) *Genome {
 	// initialize innovation number to 0
+	ncount := 0
 	innov := 0
 
 	// number of nodes and connections including bias
@@ -72,6 +75,7 @@ func NewGenome(numSensors, numOutputs int) *Genome {
 	// sensor nodes
 	for i := 0; i < numSensors; i++ {
 		nodes = append(nodes, NewNodeGene(i, "sensor", nil))
+		ncount++
 	}
 	// output nodes and connections
 	nodes = append(nodes, NewNodeGene(numNodes-1, "bias", nil))
@@ -82,9 +86,12 @@ func NewGenome(numSensors, numOutputs int) *Genome {
 			conns = append(conns, NewConnGene(innov, j, i))
 			innov++
 		}
+		ncount++
 	}
 
 	return &Genome{
+		id:         id,
+		ncount:     ncount,
 		innov:      innov,
 		numSensors: numSensors,
 		numOutputs: numOutputs,
@@ -131,17 +138,26 @@ func (g *Genome) Conns() []*ConnGene {
 	return g.conns
 }
 
-// MutateAddNode mutates the genome by adding a node between a
+// Mutate mutates the genome by adding a node, adding a connection,
+// deleting a node, deleting a connection, and mutating prexisting
+// nodes and connections.
+func (g *Genome) Mutate() {
+
+}
+
+// mutateAddNode mutates the genome by adding a node between a
 // connection of two nodes.
-func (g *Genome) MutateAddNode() {
+func (g *Genome) mutateAddNode() {
 
 }
 
-// MutateAddConn mutates the genome by adding a connection between
+// mutateAddConn mutates the genome by adding a connection between
 // two nodes.
-func (g *Genome) MutateAddConn() {
+func (g *Genome) mutateAddConn() {
 
 }
+
+// mutateDelNode
 
 // NodeGene is an implementation of each node within a genome.
 // Each node includes a node ID (NID), a node type (NType), and
