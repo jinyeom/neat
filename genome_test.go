@@ -18,6 +18,11 @@ func TestGenome(t *testing.T) {
 	fmt.Printf("Connections:\n")
 	conns := g.Conns()
 	for _, c := range conns {
+		if c.disabled {
+			fmt.Printf("DISABLED ")
+		} else {
+			fmt.Printf("ENABLED ")
+		}
 		fmt.Printf("Innov %d: (%d) -> (%d)\n", c.Innov(), c.In(), c.Out())
 	}
 	fmt.Printf("Current node counter: %d\n", g.ncount)
@@ -35,6 +40,11 @@ func TestGenome(t *testing.T) {
 	fmt.Printf("Connections after mutation:\n")
 	conns = g.Conns()
 	for _, c := range conns {
+		if c.disabled {
+			fmt.Printf("DISABLED ")
+		} else {
+			fmt.Printf("ENABLED ")
+		}
 		fmt.Printf("Innov %d: (%d) -> (%d)\n", c.Innov(), c.In(), c.Out())
 	}
 	fmt.Printf("Current node counter: %d\n", g.ncount)
