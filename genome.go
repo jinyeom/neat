@@ -47,9 +47,12 @@ var (
 	// access globalInnovNum.
 	globalInnovNum = 0
 
+	// ProbMutAddNode is a mutation rate for adding a node.
 	ProbMutAddNode = 0.1
+	// ProbMutAddConn is a mutation rate for adding a connection.
 	ProbMutAddConn = 0.1
-	ProbMutWeight  = 0.1
+	// ProbMutWeight is a mutation rate of a weight.
+	ProbMutWeight = 0.1
 )
 
 // Genome is an implementation of genotype of an evolving network;
