@@ -43,16 +43,13 @@ import (
 var (
 	// globalInnovNum is a global variable that keeps track of
 	// the chronology of the evolution as a global innovation
-	// number; it is initialized as 0.
+	// number; it is initialized as 0. Users cannot directly
+	// access globalInnovNum.
 	globalInnovNum = 0
 
-	ProbMutAddNode    = 0.1
-	ProbMutAddConn    = 0.1
-	ProbMutDelNode    = 0.1
-	ProbMutDelConn    = 0.1
-	ProbMutActivation = 0.1
-	ProbMutWeight     = 0.1
-	ProbMutDisabled   = 0.1
+	ProbMutAddNode = 0.1
+	ProbMutAddConn = 0.1
+	ProbMutWeight  = 0.1
 )
 
 // Genome is an implementation of genotype of an evolving network;
@@ -149,10 +146,6 @@ func (g *Genome) Mutate() {
 	if rand.Float64() < ProbMutAddConn {
 		g.mutateAddConn()
 	}
-	// mutate nodes
-	for i := range g.nodes {
-		g.nodes[i].mutate()
-	}
 	// mutate connections
 	for i := range g.conns {
 		g.conns[i].mutate()
@@ -175,14 +168,15 @@ func (g *Genome) mutateAddNode() {
 	g.conns = append(g.conns, newConn2)
 	globalInnovNum += 2
 
-	g.conns[ci].mutateDisabled()
+	g.conns[ci].switchConn()
+	g.numHidden++
 }
 
 // mutateAddConn mutates the genome by adding a connection between
 // two nodes. A new connection can be added from a node to itself.
 func (g *Genome) mutateAddConn() {
 	in := rand.Intn(len(g.nodes))
-	out := rand.Intn(len(g.nodes))
+	out := rand.Intn(len(g.nodes[g.numSensors+1:])) + g.numSensors + 1
 
 	newConn := NewConnGene(globalInnovNum, in, out)
 	g.conns = append(g.conns, newConn)
@@ -221,20 +215,6 @@ func (n *NodeGene) NType() string {
 // Afn returns the node's activation function.
 func (n *NodeGene) Afn() *ActivationFunc {
 	return n.afn
-}
-
-// mutate mutates the node gene.
-func (n *NodeGene) mutate() {
-	if rand.Float64() < ProbMutActivation {
-		n.mutateActivation()
-	}
-}
-
-// mutateActivation mutates the node via mutation of its activation function.
-// Use this function only when more than one kind of activation
-// functions is used within a network.
-func (n *NodeGene) mutateActivation() {
-	n.afn = RandActivationFunc()
 }
 
 // ConnGene is an implementation of each connection within a genome.
@@ -287,23 +267,15 @@ func (c *ConnGene) Weight() float64 {
 	return c.weight
 }
 
-// mutate mutates the connection.
+// mutate mutates the connection weight.
 func (c *ConnGene) mutate() {
 	if rand.Float64() < ProbMutWeight {
-		c.mutateWeight()
-	}
-	if rand.Float64() < ProbMutDisabled {
-		c.mutateDisabled()
+		c.weight += rand.NormFloat64()
 	}
 }
 
-// mutateWeight mutates the connection via mutation of its weight.
-func (c *ConnGene) mutateWeight() {
-
-}
-
-// mutateDisabled mutates the connection by enabling/disabling
-// the connection.
-func (c *ConnGene) mutateDisabled() {
+// switchConn enables the connection if it is disabled; disables
+// the connection otherwise.
+func (c *ConnGene) switchConn() {
 	c.disabled = !c.disabled
 }
