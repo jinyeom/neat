@@ -40,7 +40,7 @@ import (
 	"math/rand"
 )
 
-var ActivationSet = []*Activation{
+var ActivationSet = []*ActivationFunc{
 	Identity(),
 	Tanh(),
 	Sin(),

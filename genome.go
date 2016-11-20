@@ -39,11 +39,22 @@ import (
 	"math/rand"
 )
 
+var (
+	ProbMutNode    = 0.1
+	ProbMutConn    = 0.1
+	ProbMutAddNode = 0.1
+	ProbMutAddConn = 0.1
+	ProbMutDelNode = 0.1
+	ProbMutDelConn = 0.1
+)
+
 // Genome is an implementation of genotype of an evolving network;
 // it includes NodeGenes and ConnGenes.
 type Genome struct {
+	gid int // genome ID
+
 	// internal counter for nodes and connections
-	ncount int // node counter
+	ncount int // node ID counter
 	innov  int // innovation number
 
 	numSensors int // number of sensor nodes
@@ -61,7 +72,7 @@ type Genome struct {
 
 // NewGenome creates a new genome in its initial state, it is
 // only consist of fully connected sensor nodes and output nodes.
-func NewGenome(id, numSensors, numOutputs int) *Genome {
+func NewGenome(gid, numSensors, numOutputs int) *Genome {
 	// initialize innovation number to 0
 	ncount := 0
 	innov := 0
@@ -74,13 +85,15 @@ func NewGenome(id, numSensors, numOutputs int) *Genome {
 	conns := make([]*ConnGene, 0, numConns)
 	// sensor nodes
 	for i := 0; i < numSensors; i++ {
-		nodes = append(nodes, NewNodeGene(i, "sensor", nil))
+		nodes = append(nodes, NewNodeGene(i, "sensor", Identity()))
 		ncount++
 	}
+	// bias node as one of the sensors
+	nodes = append(nodes, NewNodeGene(ncount, "bias", Identity()))
+	ncount++
 	// output nodes and connections
-	nodes = append(nodes, NewNodeGene(numNodes-1, "bias", nil))
 	for i := numSensors + 1; i < numNodes; i++ {
-		nodes = append(nodes, NewNodeGene(i, "output", nil))
+		nodes = append(nodes, NewNodeGene(ncount, "output", Sigmoid()))
 		// connect from input nodes to this node
 		for j := 0; j <= numSensors; j++ {
 			conns = append(conns, NewConnGene(innov, j, i))
@@ -90,7 +103,7 @@ func NewGenome(id, numSensors, numOutputs int) *Genome {
 	}
 
 	return &Genome{
-		id:         id,
+		gid:        gid,
 		ncount:     ncount,
 		innov:      innov,
 		numSensors: numSensors,
@@ -101,6 +114,11 @@ func NewGenome(id, numSensors, numOutputs int) *Genome {
 		nodes:      nodes,
 		conns:      conns,
 	}
+}
+
+// GID returns the genome's ID.
+func (g *Genome) GID() int {
+	return g.gid
 }
 
 // NumSensors returns the number of sensor nodes in the genome.
@@ -142,7 +160,26 @@ func (g *Genome) Conns() []*ConnGene {
 // deleting a node, deleting a connection, and mutating prexisting
 // nodes and connections.
 func (g *Genome) Mutate() {
-
+	if rand.Float64() < ProbMutAddNode {
+		g.mutateAddNode()
+	}
+	if rand.Float64() < ProbMutAddConn {
+		g.mutateAddConn()
+	}
+	if rand.Float64() < ProbMutDelNode {
+		g.mutateDelNode()
+	}
+	if rand.Float64() < ProbMutDelConn {
+		g.mutateDelConn()
+	}
+	// mutate nodes
+	for i := range g.nodes {
+		g.nodes[i].mutate()
+	}
+	// mutate connections
+	for i := range g.conns {
+		g.conns[i].mutate()
+	}
 }
 
 // mutateAddNode mutates the genome by adding a node between a
@@ -201,6 +238,20 @@ func (n *NodeGene) Afn() *ActivationFunc {
 	return n.afn
 }
 
+// mutate mutates the node gene.
+func (n *NodeGene) mutate() {
+	if rand.Float64() < ProbMutActivation {
+		n.mutateActivation()
+	}
+}
+
+// mutateActivation mutates the node via mutation of its activation function.
+// Use this function only when more than one kind of activation
+// functions is used within a network.
+func (n *NodeGene) mutateActivation() {
+	n.afn = RandActivationFunc()
+}
+
 // ConnGene is an implementation of each connection within a genome.
 // It represents a connection between an in-node and an out-node;
 // it contains an innovation number and nids of the in-node and the
@@ -249,4 +300,16 @@ func (c *ConnGene) IsDisabled() bool {
 // Weight returns the connection's weight.
 func (c *ConnGene) Weight() float64 {
 	return c.weight
+}
+
+// mutate mutates the connection.
+func (c *ConnGene) mutate() {
+	if rand.Float64() < ProbMutWeight {
+		c.mutateWeight()
+	}
+}
+
+// mutateWeight mutates the connection via mutation of its weight.
+func (c *ConnGene) mutateWeight() {
+
 }
