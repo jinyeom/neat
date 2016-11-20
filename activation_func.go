@@ -37,7 +37,22 @@ package neat
 
 import (
 	"math"
+	"math/rand"
 )
+
+var ActivationSet = []*Activation{
+	Identity(),
+	Tanh(),
+	Sin(),
+	Cos(),
+	Sigmoid(),
+	ReLU(),
+	Log(),
+	Exp(),
+	Abs(),
+	Square(),
+	Cube(),
+}
 
 // ActivationFunc is a function type of which the independence
 // variable is a single float64 and its dependence variable is
@@ -45,6 +60,12 @@ import (
 type ActivationFunc struct {
 	name string                  // name of the function
 	fn   func(x float64) float64 // activation function
+}
+
+// RandActivationFunc returns a randomly selected activation
+// function from the ActivationSet.
+func RandActivationFunc() *ActivationFunc {
+	return ActivationSet[rand.Intn(len(ActivationSet))]
 }
 
 // Identity returns the identity function as an activation
