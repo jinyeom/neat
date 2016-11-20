@@ -136,6 +136,11 @@ func (g *Genome) Conns() []*ConnGene {
 	return g.conns
 }
 
+// Copy returns a duplicate of this genome.
+func (g *Genome) Copy() *Genome {
+
+}
+
 // Mutate mutates the genome by adding a node, adding a connection,
 // and by mutating connections' weights.
 func (g *Genome) Mutate() {
@@ -216,6 +221,15 @@ func (n *NodeGene) Afn() *ActivationFunc {
 	return n.afn
 }
 
+// Copy returns a deep copy of this gene.
+func (n *NodeGene) Copy() *NodeGene {
+	return &NodeGene{
+		nid:   n.nid,
+		ntype: n.ntype,
+		afn:   n.afn,
+	}
+}
+
 // ConnGene is an implementation of each connection within a genome.
 // It represents a connection between an in-node and an out-node;
 // it contains an innovation number and nids of the in-node and the
@@ -264,6 +278,17 @@ func (c *ConnGene) IsDisabled() bool {
 // Weight returns the connection's weight.
 func (c *ConnGene) Weight() float64 {
 	return c.weight
+}
+
+// Copy returns a deep copy of this gene.
+func (c *ConnGene) Copy() *ConnGene {
+	return &ConnGene{
+		innov:    c.innov,
+		in:       c.in,
+		out:      c.out,
+		disabled: c.disabled,
+		weight:   c.weight,
+	}
 }
 
 // mutate mutates the connection weight.
