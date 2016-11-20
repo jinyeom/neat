@@ -40,12 +40,13 @@ import (
 )
 
 var (
-	ProbMutNode    = 0.1
-	ProbMutConn    = 0.1
-	ProbMutAddNode = 0.1
-	ProbMutAddConn = 0.1
-	ProbMutDelNode = 0.1
-	ProbMutDelConn = 0.1
+	ProbMutAddNode    = 0.1
+	ProbMutAddConn    = 0.1
+	ProbMutDelNode    = 0.1
+	ProbMutDelConn    = 0.1
+	ProbMutActivation = 0.1
+	ProbMutWeight     = 0.1
+	ProbMutDisabled   = 0.1
 )
 
 // Genome is an implementation of genotype of an evolving network;
@@ -185,7 +186,22 @@ func (g *Genome) Mutate() {
 // mutateAddNode mutates the genome by adding a node between a
 // connection of two nodes.
 func (g *Genome) mutateAddNode() {
+	ci := rand.Intn(len(g.conns))
+	oldIn := g.conns[ci].In()
+	oldOut := g.conns[ci].Out()
 
+	newNode := NewNodeGene(g.ncount, "hidden", Sigmoid())
+	g.nodes = append(g.nodes, newNode)
+
+	newConn1 := NewConnGene(g.innov, oldIn, g.ncount)
+	newConn2 := NewConnGene(g.innov+1, g.ncount, oldOut)
+	g.conns = append(g.conns, newConn1)
+	g.conns = append(g.conns, newConn2)
+	g.innov += 2
+
+	g.conns[ci].mutateDisabled()
+
+	g.ncount++
 }
 
 // mutateAddConn mutates the genome by adding a connection between
@@ -307,9 +323,18 @@ func (c *ConnGene) mutate() {
 	if rand.Float64() < ProbMutWeight {
 		c.mutateWeight()
 	}
+	if rand.Float64() < ProbMutDisabled {
+		c.mutateDisabled()
+	}
 }
 
 // mutateWeight mutates the connection via mutation of its weight.
 func (c *ConnGene) mutateWeight() {
 
+}
+
+// mutateDisabled mutates the connection by enabling/disabling
+// the connection.
+func (c *ConnGene) mutateDisabled() {
+	c.disabled = !c.disabled
 }
