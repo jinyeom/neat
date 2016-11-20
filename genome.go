@@ -55,6 +55,33 @@ var (
 	ProbMutWeight = 0.1
 )
 
+// SetProbMutAddNode sets a mutation rate for adding a node.
+func SetProbMutAddNode(rate float64) error {
+	if rate > 1.0 || rate < 0.0 {
+		return fmt.Errorf("Invalid mutation rate: %f", rate)
+	}
+	ProbMutAddNode = rate
+	return nil
+}
+
+// SetProbMutAddConn sets a mutation rate for adding a connection.
+func SetProbMutAddConn(rate float64) error {
+	if rate > 1.0 || rate < 0.0 {
+		return fmt.Errorf("Invalid mutation rate: %f", rate)
+	}
+	ProbMutAddConn = rate
+	return nil
+}
+
+// SetProbMutWeight sets a mutation rate of a weight.
+func SetProbMutWeight(rate float64) error {
+	if rate > 1.0 || rate < 0.0 {
+		return fmt.Errorf("Invalid mutation rate: %f", rate)
+	}
+	ProbMutWeight = rate
+	return nil
+}
+
 // Genome is an implementation of genotype of an evolving network;
 // it includes NodeGenes and ConnGenes.
 type Genome struct {
