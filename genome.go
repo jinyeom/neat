@@ -36,10 +36,13 @@ for the Go code in this page.
 package neat
 
 import (
+	"errors"
 	"math/rand"
 )
 
 var (
+	globalInnovNum = 0
+
 	ProbMutAddNode    = 0.1
 	ProbMutAddConn    = 0.1
 	ProbMutDelNode    = 0.1
@@ -54,16 +57,9 @@ var (
 type Genome struct {
 	gid int // genome ID
 
-	// internal counter for nodes and connections
-	ncount int // node ID counter
-	innov  int // innovation number
-
 	numSensors int // number of sensor nodes
 	numOutputs int // number of output nodes
 	numHidden  int // number of hidden nodes
-
-	numNodes int // total number of nodes
-	numConns int // total number of connections
 
 	nodes []*NodeGene // collection of node genes
 	conns []*ConnGene // collection of connection genes
@@ -73,10 +69,10 @@ type Genome struct {
 
 // NewGenome creates a new genome in its initial state, it is
 // only consist of fully connected sensor nodes and output nodes.
-func NewGenome(gid, numSensors, numOutputs int) *Genome {
-	// initialize innovation number to 0
-	ncount := 0
-	innov := 0
+func NewGenome(gid, numSensors, numOutputs int) (*Genome, error) {
+	if numSensors < 1 || numOutputs < 1 {
+		return nil, errors.New("Invalid number of sensors and/or outputs")
+	}
 
 	// number of nodes and connections including bias
 	numNodes := numSensors + 1 + numOutputs
@@ -87,34 +83,27 @@ func NewGenome(gid, numSensors, numOutputs int) *Genome {
 	// sensor nodes
 	for i := 0; i < numSensors; i++ {
 		nodes = append(nodes, NewNodeGene(i, "sensor", Identity()))
-		ncount++
 	}
 	// bias node as one of the sensors
-	nodes = append(nodes, NewNodeGene(ncount, "bias", Identity()))
-	ncount++
+	nodes = append(nodes, NewNodeGene(numSensors, "bias", Identity()))
 	// output nodes and connections
 	for i := numSensors + 1; i < numNodes; i++ {
-		nodes = append(nodes, NewNodeGene(ncount, "output", Sigmoid()))
+		nodes = append(nodes, NewNodeGene(i, "output", Sigmoid()))
 		// connect from input nodes to this node
 		for j := 0; j <= numSensors; j++ {
-			conns = append(conns, NewConnGene(innov, j, i))
-			innov++
+			conns = append(conns, NewConnGene(globalInnovNum, j, i))
+			globalInnovNum++
 		}
-		ncount++
 	}
 
 	return &Genome{
 		gid:        gid,
-		ncount:     ncount,
-		innov:      innov,
 		numSensors: numSensors,
 		numOutputs: numOutputs,
 		numHidden:  0,
-		numNodes:   numNodes,
-		numConns:   numConns,
 		nodes:      nodes,
 		conns:      conns,
-	}
+	}, nil
 }
 
 // GID returns the genome's ID.
@@ -137,16 +126,6 @@ func (g *Genome) NumHidden() int {
 	return g.numHidden
 }
 
-// NumNodes returns the total number of nodes in the genome.
-func (g *Genome) NumNodes() int {
-	return g.numNodes
-}
-
-// NumConns returns the total number of connections in the genome.
-func (g *Genome) NumConns() int {
-	return g.numConns
-}
-
 // Nodes returns all nodes in the genome.
 func (g *Genome) Nodes() []*NodeGene {
 	return g.nodes
@@ -167,12 +146,6 @@ func (g *Genome) Mutate() {
 	if rand.Float64() < ProbMutAddConn {
 		g.mutateAddConn()
 	}
-	if rand.Float64() < ProbMutDelNode {
-		g.mutateDelNode()
-	}
-	if rand.Float64() < ProbMutDelConn {
-		g.mutateDelConn()
-	}
 	// mutate nodes
 	for i := range g.nodes {
 		g.nodes[i].mutate()
@@ -190,34 +163,27 @@ func (g *Genome) mutateAddNode() {
 	oldIn := g.conns[ci].In()
 	oldOut := g.conns[ci].Out()
 
-	newNode := NewNodeGene(g.ncount, "hidden", Sigmoid())
+	newNode := NewNodeGene(len(g.nodes), "hidden", Sigmoid())
 	g.nodes = append(g.nodes, newNode)
 
-	newConn1 := NewConnGene(g.innov, oldIn, g.ncount)
-	newConn2 := NewConnGene(g.innov+1, g.ncount, oldOut)
+	newConn1 := NewConnGene(globalInnovNum, oldIn, newNode.nid)
+	newConn2 := NewConnGene(globalInnovNum+1, newNode.nid, oldOut)
 	g.conns = append(g.conns, newConn1)
 	g.conns = append(g.conns, newConn2)
-	g.innov += 2
+	globalInnovNum += 2
 
 	g.conns[ci].mutateDisabled()
-
-	g.ncount++
 }
 
 // mutateAddConn mutates the genome by adding a connection between
-// two nodes.
+// two nodes. A new connection can be added from a node to itself.
 func (g *Genome) mutateAddConn() {
+	in := rand.Intn(len(g.nodes))
+	out := rand.Intn(len(g.nodes))
 
-}
-
-// mutateDelNode mutates the genome by deleting a node.
-func (g *Genome) mutateDelNode() {
-
-}
-
-// mutateDelConn mutates the genome by deleting a connection.
-func (g *Genome) mutateDelConn() {
-
+	newConn := NewConnGene(globalInnovNum, in, out)
+	g.conns = append(g.conns, newConn)
+	globalInnovNum++
 }
 
 // NodeGene is an implementation of each node within a genome.

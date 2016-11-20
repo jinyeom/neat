@@ -7,7 +7,10 @@ import (
 
 func TestGenome(t *testing.T) {
 	fmt.Printf("=== Creating a Genome ===\n")
-	g := NewGenome(0, 3, 2)
+	g, err := NewGenome(0, 3, 2)
+	if err != nil {
+		panic(err)
+	}
 	// check if the genome is initialized correctly
 	fmt.Printf("GID: %d\n", g.GID())
 	fmt.Printf("Nodes:\n")
@@ -25,8 +28,7 @@ func TestGenome(t *testing.T) {
 		}
 		fmt.Printf("Innov %d: (%d) -> (%d)\n", c.Innov(), c.In(), c.Out())
 	}
-	fmt.Printf("Current node counter: %d\n", g.ncount)
-	fmt.Printf("Current innovation number: %d\n", g.innov)
+	fmt.Printf("Current innovation number: %d\n", globalInnovNum)
 
 	fmt.Printf("=== Genome Mutation ===\n")
 
@@ -47,6 +49,5 @@ func TestGenome(t *testing.T) {
 		}
 		fmt.Printf("Innov %d: (%d) -> (%d)\n", c.Innov(), c.In(), c.Out())
 	}
-	fmt.Printf("Current node counter: %d\n", g.ncount)
-	fmt.Printf("Current innovation number: %d\n", g.innov)
+	fmt.Printf("Current innovation number: %d\n", globalInnovNum)
 }
