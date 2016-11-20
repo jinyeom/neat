@@ -137,8 +137,7 @@ func (g *Genome) Conns() []*ConnGene {
 }
 
 // Mutate mutates the genome by adding a node, adding a connection,
-// deleting a node, deleting a connection, and mutating prexisting
-// nodes and connections.
+// and by mutating connections' weights.
 func (g *Genome) Mutate() {
 	if rand.Float64() < ProbMutAddNode {
 		g.mutateAddNode()
