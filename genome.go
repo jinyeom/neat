@@ -157,7 +157,15 @@ func (g *Genome) mutateAddConn() {
 
 }
 
-// mutateDelNode
+// mutateDelNode mutates the genome by deleting a node.
+func (g *Genome) mutateDelNode() {
+
+}
+
+// mutateDelConn mutates the genome by deleting a connection.
+func (g *Genome) mutateDelConn() {
+
+}
 
 // NodeGene is an implementation of each node within a genome.
 // Each node includes a node ID (NID), a node type (NType), and
