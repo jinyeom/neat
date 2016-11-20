@@ -136,9 +136,28 @@ func (g *Genome) Conns() []*ConnGene {
 	return g.conns
 }
 
-// Copy returns a duplicate of this genome.
+// Copy returns a deep copy of this genome.
 func (g *Genome) Copy() *Genome {
-
+	return &Genome{
+		gid:        g.gid,
+		numSensors: g.numSensors,
+		numOutputs: g.numOutputs,
+		numHidden:  g.numHidden,
+		nodes: func() []*NodeGene {
+			nodes := make([]*NodeGene, 0, len(g.nodes))
+			for _, node := range g.nodes {
+				nodes = append(nodes, node.Copy())
+			}
+			return nodes
+		}(),
+		conns: func() []*ConnGene {
+			conns := make([]*ConnGene, 0, len(g.conns))
+			for _, conn := range g.conns {
+				conns = append(conns, conn.Copy())
+			}
+			return conns
+		}(),
+	}
 }
 
 // Mutate mutates the genome by adding a node, adding a connection,
