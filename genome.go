@@ -41,6 +41,9 @@ import (
 )
 
 var (
+	// globalInnovNum is a global variable that keeps track of
+	// the chronology of the evolution as a global innovation
+	// number; it is initialized as 0.
 	globalInnovNum = 0
 
 	ProbMutAddNode    = 0.1
