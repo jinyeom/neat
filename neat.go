@@ -83,3 +83,8 @@ func New(config *NEATConfig) (*NEAT, error) {
 		population: population,
 	}, nil
 }
+
+// Run starts the evolution process of NEAT.
+func (n *NEAT) Run() {
+
+}

@@ -11,11 +11,11 @@ func TestGenome(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 
 	fmt.Printf("=== Creating a Genome ===\n")
-	globalInnovNum = 8
 	g, err := NewGenome(0, 3, 2)
 	if err != nil {
 		panic(err)
 	}
+	globalInnovNum = 8
 	fmt.Printf("GID: %d\n", g.GID())
 	fmt.Printf("Nodes:\n")
 	nodes := g.Nodes()
