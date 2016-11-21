@@ -5,7 +5,7 @@ import (
 )
 
 func TestNEAT(t *testing.T) {
-	n, err := New(&NEATConfig{
+	n, err := New(&Config{
 		numSensors: 3,
 		numOutputs: 2,
 	})

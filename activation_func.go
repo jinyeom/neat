@@ -40,6 +40,7 @@ import (
 	"math/rand"
 )
 
+// ActivationSet is a collection of all activation functions.
 var ActivationSet = []*ActivationFunc{
 	Identity(),
 	Tanh(),

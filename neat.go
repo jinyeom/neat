@@ -43,8 +43,8 @@ var (
 	globalInnovNum = 0
 )
 
-// NEATConfig is a wrapper of all configurations of NEAT.
-type NEATConfig struct {
+// Config is a wrapper of all configurations of NEAT.
+type Config struct {
 	numSensors     int // number of sensors
 	numOutputs     int // number of outputs
 	populationSize int // population size
@@ -60,12 +60,12 @@ type NEATConfig struct {
 // NEAT is an implementation of NeuroEvolution of Augmenting
 // Topologies; it includes
 type NEAT struct {
-	config     *NEATConfig // NEAT configuration
-	population []*Genome   // population of genomes
+	config     *Config   // NEAT configuration
+	population []*Genome // population of genomes
 }
 
 // New creates NEAT and initializes its environment given a configuration.
-func New(config *NEATConfig) (*NEAT, error) {
+func New(config *Config) (*NEAT, error) {
 	// initialize global innovation number
 	globalInnovNum = (config.numSensors + 1) * config.numOutputs
 

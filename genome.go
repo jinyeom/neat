@@ -152,7 +152,7 @@ func (g *Genome) Copy() *Genome {
 
 // Mutate mutates the genome by adding a node, adding a connection,
 // and by mutating connections' weights.
-func (g *Genome) Mutate(config *NEATConfig) {
+func (g *Genome) Mutate(config *Config) {
 	if rand.Float64() < config.mutAddNodeRate {
 		g.mutateAddNode()
 	}
