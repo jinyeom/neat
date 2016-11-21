@@ -16,11 +16,11 @@ func TestGenome(t *testing.T) {
 		panic(err)
 	}
 	globalInnovNum = 8
-	fmt.Printf("GID: %d\n", g.GID())
+	fmt.Printf("GID: %d\n", g.ID())
 	fmt.Printf("Nodes:\n")
 	nodes := g.Nodes()
 	for _, n := range nodes {
-		fmt.Printf("NID %d (%s) - %s\n", n.NID(), n.NType(), n.Afn().Name())
+		fmt.Printf("NID %d (%s) - %s\n", n.ID(), n.NType(), n.Afn().Name())
 	}
 	fmt.Printf("Connections:\n")
 	conns := g.Conns()
@@ -42,7 +42,7 @@ func TestGenome(t *testing.T) {
 	fmt.Printf("Nodes after mutation:\n")
 	nodes = g.Nodes()
 	for _, n := range nodes {
-		fmt.Printf("NID %d (%s) - %s\n", n.NID(), n.NType(), n.Afn().Name())
+		fmt.Printf("NID %d (%s) - %s\n", n.ID(), n.NType(), n.Afn().Name())
 	}
 	fmt.Printf("Connections after mutation:\n")
 	conns = g.Conns()
@@ -62,7 +62,7 @@ func TestGenome(t *testing.T) {
 	fmt.Printf("Nodes after mutation:\n")
 	nodes = g.Nodes()
 	for _, n := range nodes {
-		fmt.Printf("NID %d (%s) - %s\n", n.NID(), n.NType(), n.Afn().Name())
+		fmt.Printf("NID %d (%s) - %s\n", n.ID(), n.NType(), n.Afn().Name())
 	}
 	fmt.Printf("Connections after mutation:\n")
 	conns = g.Conns()
@@ -86,7 +86,7 @@ func TestGenome(t *testing.T) {
 	fmt.Printf("Nodes after mutation:\n")
 	nodes = g.Nodes()
 	for _, n := range nodes {
-		fmt.Printf("NID %d (%s) - %s\n", n.NID(), n.NType(), n.Afn().Name())
+		fmt.Printf("NID %d (%s) - %s\n", n.ID(), n.NType(), n.Afn().Name())
 	}
 	fmt.Printf("Connections after mutation:\n")
 	conns = g.Conns()

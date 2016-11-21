@@ -43,7 +43,7 @@ import (
 // Genome is an implementation of genotype of an evolving network;
 // it includes NodeGenes and ConnGenes.
 type Genome struct {
-	gid int // genome ID
+	id int // genome ID
 
 	numSensors int // number of sensor nodes
 	numOutputs int // number of output nodes
@@ -57,7 +57,7 @@ type Genome struct {
 
 // NewGenome creates a new genome in its initial state, it is
 // only consist of fully connected sensor nodes and output nodes.
-func NewGenome(gid, numSensors, numOutputs int) (*Genome, error) {
+func NewGenome(id, numSensors, numOutputs int) (*Genome, error) {
 	if numSensors < 1 || numOutputs < 1 {
 		return nil, errors.New("Invalid number of sensors and/or outputs")
 	}
@@ -88,7 +88,7 @@ func NewGenome(gid, numSensors, numOutputs int) (*Genome, error) {
 	}
 
 	return &Genome{
-		gid:        gid,
+		id:         id,
 		numSensors: numSensors,
 		numOutputs: numOutputs,
 		numHidden:  0,
@@ -97,9 +97,9 @@ func NewGenome(gid, numSensors, numOutputs int) (*Genome, error) {
 	}, nil
 }
 
-// GID returns the genome's ID.
-func (g *Genome) GID() int {
-	return g.gid
+// ID returns the genome's ID.
+func (g *Genome) ID() int {
+	return g.id
 }
 
 // NumSensors returns the number of sensor nodes in the genome.
@@ -130,7 +130,7 @@ func (g *Genome) Conns() []*ConnGene {
 // Copy returns a deep copy of this genome.
 func (g *Genome) Copy() *Genome {
 	return &Genome{
-		gid:        g.gid,
+		id:         g.id,
 		numSensors: g.numSensors,
 		numOutputs: g.numOutputs,
 		numHidden:  g.numHidden,
@@ -151,18 +151,27 @@ func (g *Genome) Copy() *Genome {
 	}
 }
 
+// Crossover returns children genome created by crossover operation
+// between this genome and other genome provided as an argument.
+func Crossover(g0, g1 *Genome) (*Genome, *Genome) {
+	child1 := g0.Copy()
+	child2 := g1.Copy()
+
+	return child1, child2
+}
+
 // Mutate mutates the genome by adding a node, adding a connection,
 // and by mutating connections' weights.
-func (g *Genome) Mutate(config *Config) {
-	if rand.Float64() < config.MutAddNodeRate {
+func (g *Genome) Mutate(conf *Config) {
+	if rand.Float64() < conf.MutAddNodeRate {
 		g.mutateAddNode()
 	}
-	if rand.Float64() < config.MutAddConnRate {
+	if rand.Float64() < conf.MutAddConnRate {
 		g.mutateAddConn()
 	}
 	// mutate connections
 	for i := range g.conns {
-		g.conns[i].mutate(config.MutWeightRate)
+		g.conns[i].mutate(conf.MutWeightRate)
 	}
 }
 
@@ -176,8 +185,8 @@ func (g *Genome) mutateAddNode() {
 	newNode := NewNodeGene(len(g.nodes), "hidden", Sigmoid())
 	g.nodes = append(g.nodes, newNode)
 
-	newConn1 := NewConnGene(globalInnovNum, oldIn, newNode.nid)
-	newConn2 := NewConnGene(globalInnovNum+1, newNode.nid, oldOut)
+	newConn1 := NewConnGene(globalInnovNum, oldIn, newNode.id)
+	newConn2 := NewConnGene(globalInnovNum+1, newNode.id, oldOut)
 	g.conns = append(g.conns, newConn1)
 	g.conns = append(g.conns, newConn2)
 	globalInnovNum += 2
