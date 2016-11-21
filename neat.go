@@ -45,10 +45,11 @@ var (
 
 // NEATConfig is a wrapper of all configurations of NEAT.
 type NEATConfig struct {
-	numSensors int // number of sensors
-	numOutputs int // number of outputs
-
+	numSensors     int // number of sensors
+	numOutputs     int // number of outputs
 	populationSize int // population size
+
+	evalFunc *EvaluationFunc // evalutation function
 
 	crossoverRate  float64 // crossover rate
 	mutAddNodeRate float64 // mutation rate for adding a node
@@ -81,8 +82,4 @@ func New(config *NEATConfig) (*NEAT, error) {
 		config:     config,
 		population: population,
 	}, nil
-}
-
-func main() {
-
 }
