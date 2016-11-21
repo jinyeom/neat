@@ -45,16 +45,14 @@ var (
 
 // Config is a wrapper for all configurations of NEAT.
 type Config struct {
-	NumSensors     int // number of sensors
-	NumOutputs     int // number of outputs
-	PopulationSize int // population size
-
-	EvalFunc *EvaluationFunc // evalutation function
-
-	CrossoverRate  float64 // crossover rate
-	MutAddNodeRate float64 // mutation rate for adding a node
-	MutAddConnRate float64 // mutation rate for adding a connection
-	MutWeightRate  float64 // mutation rate of weights of connections
+	NumSensors     int             // number of sensors
+	NumOutputs     int             // number of outputs
+	PopulationSize int             // population size
+	CrossoverRate  float64         // crossover rate
+	MutAddNodeRate float64         // mutation rate for adding a node
+	MutAddConnRate float64         // mutation rate for adding a connection
+	MutWeightRate  float64         // mutation rate of weights of connections
+	EvalFunc       *EvaluationFunc // evaluation function
 }
 
 // NEAT is an implementation of NeuroEvolution of Augmenting
