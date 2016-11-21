@@ -43,18 +43,18 @@ var (
 	globalInnovNum = 0
 )
 
-// Config is a wrapper of all configurations of NEAT.
+// Config is a wrapper for all configurations of NEAT.
 type Config struct {
-	numSensors     int // number of sensors
-	numOutputs     int // number of outputs
-	populationSize int // population size
+	NumSensors     int // number of sensors
+	NumOutputs     int // number of outputs
+	PopulationSize int // population size
 
-	evalFunc *EvaluationFunc // evalutation function
+	EvalFunc *EvaluationFunc // evalutation function
 
-	crossoverRate  float64 // crossover rate
-	mutAddNodeRate float64 // mutation rate for adding a node
-	mutAddConnRate float64 // mutation rate for adding a connection
-	mutWeightRate  float64 // mutation rate of weights of connections
+	CrossoverRate  float64 // crossover rate
+	MutAddNodeRate float64 // mutation rate for adding a node
+	MutAddConnRate float64 // mutation rate for adding a connection
+	MutWeightRate  float64 // mutation rate of weights of connections
 }
 
 // NEAT is an implementation of NeuroEvolution of Augmenting
@@ -67,12 +67,12 @@ type NEAT struct {
 // New creates NEAT and initializes its environment given a configuration.
 func New(config *Config) (*NEAT, error) {
 	// initialize global innovation number
-	globalInnovNum = (config.numSensors + 1) * config.numOutputs
+	globalInnovNum = (config.NumSensors + 1) * config.NumOutputs
 
 	// initialize population
-	population := make([]*Genome, config.populationSize)
+	population := make([]*Genome, config.PopulationSize)
 	for i := range population {
-		genome, err := NewGenome(i, config.numSensors, config.numOutputs)
+		genome, err := NewGenome(i, config.NumSensors, config.NumOutputs)
 		if err != nil {
 			return nil, err
 		}

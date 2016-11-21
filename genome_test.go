@@ -76,4 +76,28 @@ func TestGenome(t *testing.T) {
 	}
 	fmt.Printf("Current innovation number: %d\n", globalInnovNum)
 	fmt.Println()
+
+	fmt.Printf("Overall mutation\n")
+	g.Mutate(&Config{
+		MutAddNodeRate: 0.1,
+		MutAddConnRate: 0.1,
+		MutWeightRate:  0.1,
+	})
+	fmt.Printf("Nodes after mutation:\n")
+	nodes = g.Nodes()
+	for _, n := range nodes {
+		fmt.Printf("NID %d (%s) - %s\n", n.NID(), n.NType(), n.Afn().Name())
+	}
+	fmt.Printf("Connections after mutation:\n")
+	conns = g.Conns()
+	for _, c := range conns {
+		if c.disabled {
+			fmt.Printf("DISABLED ")
+		} else {
+			fmt.Printf("ENABLED  ")
+		}
+		fmt.Printf("Innov %d (%f): (%d) -> (%d)\n", c.Innov(), c.Weight(), c.In(), c.Out())
+	}
+	fmt.Printf("Current innovation number: %d\n", globalInnovNum)
+
 }
