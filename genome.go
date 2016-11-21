@@ -40,48 +40,6 @@ import (
 	"math/rand"
 )
 
-var (
-	// globalInnovNum is a global variable that keeps track of
-	// the chronology of the evolution as a global innovation
-	// number; it is initialized as 0. Users cannot directly
-	// access globalInnovNum.
-	globalInnovNum = 0
-
-	// ProbMutAddNode is a mutation rate for adding a node.
-	ProbMutAddNode = 0.1
-	// ProbMutAddConn is a mutation rate for adding a connection.
-	ProbMutAddConn = 0.1
-	// ProbMutWeight is a mutation rate of a weight.
-	ProbMutWeight = 0.1
-)
-
-// SetProbMutAddNode sets a mutation rate for adding a node.
-func SetProbMutAddNode(rate float64) error {
-	if rate > 1.0 || rate < 0.0 {
-		return fmt.Errorf("Invalid mutation rate: %f", rate)
-	}
-	ProbMutAddNode = rate
-	return nil
-}
-
-// SetProbMutAddConn sets a mutation rate for adding a connection.
-func SetProbMutAddConn(rate float64) error {
-	if rate > 1.0 || rate < 0.0 {
-		return fmt.Errorf("Invalid mutation rate: %f", rate)
-	}
-	ProbMutAddConn = rate
-	return nil
-}
-
-// SetProbMutWeight sets a mutation rate of a weight.
-func SetProbMutWeight(rate float64) error {
-	if rate > 1.0 || rate < 0.0 {
-		return fmt.Errorf("Invalid mutation rate: %f", rate)
-	}
-	ProbMutWeight = rate
-	return nil
-}
-
 // Genome is an implementation of genotype of an evolving network;
 // it includes NodeGenes and ConnGenes.
 type Genome struct {
@@ -104,6 +62,8 @@ func NewGenome(gid, numSensors, numOutputs int) (*Genome, error) {
 		return nil, errors.New("Invalid number of sensors and/or outputs")
 	}
 
+	initInnovNum := 0
+
 	// number of nodes and connections including bias
 	numNodes := numSensors + 1 + numOutputs
 	numConns := (numSensors + 1) * numOutputs
@@ -121,8 +81,8 @@ func NewGenome(gid, numSensors, numOutputs int) (*Genome, error) {
 		nodes = append(nodes, NewNodeGene(i, "output", Sigmoid()))
 		// connect from input nodes to this node
 		for j := 0; j <= numSensors; j++ {
-			conns = append(conns, NewConnGene(globalInnovNum, j, i))
-			globalInnovNum++
+			conns = append(conns, NewConnGene(initInnovNum, j, i))
+			initInnovNum++
 		}
 	}
 
@@ -192,16 +152,16 @@ func (g *Genome) Copy() *Genome {
 
 // Mutate mutates the genome by adding a node, adding a connection,
 // and by mutating connections' weights.
-func (g *Genome) Mutate() {
-	if rand.Float64() < ProbMutAddNode {
+func (g *Genome) Mutate(config *NEATConfig) {
+	if rand.Float64() < config.mutAddNodeRate {
 		g.mutateAddNode()
 	}
-	if rand.Float64() < ProbMutAddConn {
+	if rand.Float64() < config.mutAddConnRate {
 		g.mutateAddConn()
 	}
 	// mutate connections
 	for i := range g.conns {
-		g.conns[i].mutate()
+		g.conns[i].mutate(config.mutWeightRate)
 	}
 }
 
@@ -234,121 +194,4 @@ func (g *Genome) mutateAddConn() {
 	newConn := NewConnGene(globalInnovNum, in, out)
 	g.conns = append(g.conns, newConn)
 	globalInnovNum++
-}
-
-// NodeGene is an implementation of each node within a genome.
-// Each node includes a node ID (NID), a node type (NType), and
-// a pointer to an activation function.
-type NodeGene struct {
-	nid   int             // node ID
-	ntype string          // node type
-	afn   *ActivationFunc // activation function
-}
-
-// NewNodeGene creates a new node gene with the given NID, node type, and
-// a pointer to an activation function.
-func NewNodeGene(nid int, ntype string, afn *ActivationFunc) *NodeGene {
-	return &NodeGene{
-		nid:   nid,
-		ntype: ntype,
-		afn:   afn,
-	}
-}
-
-// NID returns the node's node ID (NID).
-func (n *NodeGene) NID() int {
-	return n.nid
-}
-
-// NType returns the node's node type (NType).
-func (n *NodeGene) NType() string {
-	return n.ntype
-}
-
-// Afn returns the node's activation function.
-func (n *NodeGene) Afn() *ActivationFunc {
-	return n.afn
-}
-
-// Copy returns a deep copy of this gene.
-func (n *NodeGene) Copy() *NodeGene {
-	return &NodeGene{
-		nid:   n.nid,
-		ntype: n.ntype,
-		afn:   n.afn,
-	}
-}
-
-// ConnGene is an implementation of each connection within a genome.
-// It represents a connection between an in-node and an out-node;
-// it contains an innovation number and nids of the in-node and the
-// out-node, whether if the connection is disabled, and the weight
-// of the connection.
-type ConnGene struct {
-	innov    int     // innovation number
-	in       int     // NID of in-node
-	out      int     // NID of out-node
-	disabled bool    // whether if the connection is true
-	weight   float64 // weight of connection
-}
-
-// NewConnGene creates a new connection gene with the given innovation
-// number, the in-node NID, and the out-node NID.
-func NewConnGene(innov, in, out int) *ConnGene {
-	return &ConnGene{
-		innov:    innov,
-		in:       in,
-		out:      out,
-		disabled: false,
-		weight:   rand.NormFloat64(),
-	}
-}
-
-// Innov returns the connection's innovation number.
-func (c *ConnGene) Innov() int {
-	return c.innov
-}
-
-// In returns the NID of in-node of the connection.
-func (c *ConnGene) In() int {
-	return c.in
-}
-
-// Out returns the NID of out-node of the connection.
-func (c *ConnGene) Out() int {
-	return c.out
-}
-
-// IsDisabled indicates whether the connection is disabled.
-func (c *ConnGene) IsDisabled() bool {
-	return c.disabled
-}
-
-// Weight returns the connection's weight.
-func (c *ConnGene) Weight() float64 {
-	return c.weight
-}
-
-// Copy returns a deep copy of this gene.
-func (c *ConnGene) Copy() *ConnGene {
-	return &ConnGene{
-		innov:    c.innov,
-		in:       c.in,
-		out:      c.out,
-		disabled: c.disabled,
-		weight:   c.weight,
-	}
-}
-
-// mutate mutates the connection weight.
-func (c *ConnGene) mutate() {
-	if rand.Float64() < ProbMutWeight {
-		c.weight += rand.NormFloat64()
-	}
-}
-
-// switchConn enables the connection if it is disabled; disables
-// the connection otherwise.
-func (c *ConnGene) switchConn() {
-	c.disabled = !c.disabled
 }

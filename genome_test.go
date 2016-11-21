@@ -10,6 +10,20 @@ import (
 func TestGenome(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 
+	fmt.Printf("=== Creating NEAT ===\n")
+	_, err := New(&NEATConfig{
+		numSensors: 3,
+		numOutputs: 2,
+		populationSize: 50,
+		crossoverRate: 0.1,
+		mutAddNodeRate: 0.1,
+		mutAddConnRate: 0.1,
+		mutWeightRate: 0.1,
+	})
+	if err != nil {
+		panic(err)
+	}
+
 	fmt.Printf("=== Creating a Genome ===\n")
 	g, err := NewGenome(0, 3, 2)
 	if err != nil {
