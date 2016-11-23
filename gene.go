@@ -97,13 +97,13 @@ type ConnGene struct {
 
 // NewConnGene creates a new connection gene with the given innovation
 // number, the in-node NID, and the out-node NID.
-func NewConnGene(innov, in, out int) *ConnGene {
+func NewConnGene(innov, in, out int, weight float64) *ConnGene {
 	return &ConnGene{
 		innov:    innov,
 		in:       in,
 		out:      out,
 		disabled: false,
-		weight:   rand.NormFloat64(),
+		weight:   weight,
 	}
 }
 

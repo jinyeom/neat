@@ -134,6 +134,7 @@ func (g *Genome) Copy() *Genome {
 		numSensors: g.numSensors,
 		numOutputs: g.numOutputs,
 		numHidden:  g.numHidden,
+		// deep copy of nodes
 		nodes: func() []*NodeGene {
 			nodes := make([]*NodeGene, 0, len(g.nodes))
 			for _, node := range g.nodes {
@@ -141,6 +142,7 @@ func (g *Genome) Copy() *Genome {
 			}
 			return nodes
 		}(),
+		// deep copy of connections
 		conns: func() []*ConnGene {
 			conns := make([]*ConnGene, 0, len(g.conns))
 			for _, conn := range g.conns {
@@ -176,31 +178,54 @@ func (g *Genome) Mutate(conf *Config) {
 }
 
 // mutateAddNode mutates the genome by adding a node between a
-// connection of two nodes.
+// connection of two nodes. After the newly added node splits the
+// existing connection, two new connections will be added with weights
+// of 1.0 and the original connection's weight, in order to prevent
+// sudden changes in the network's performance.
 func (g *Genome) mutateAddNode() {
 	ci := rand.Intn(len(g.conns))
 	oldIn := g.conns[ci].In()
 	oldOut := g.conns[ci].Out()
 
-	newNode := NewNodeGene(len(g.nodes), "hidden", Sigmoid())
+	// Create a new node that will be placed between a connection of
+	// two nodes.
+	newNode := NewNodeGene(globalInnovNum, "hidden", Sigmoid())
 	g.nodes = append(g.nodes, newNode)
+	globalInnovNum++
+	g.numHidden++
 
-	newConn1 := NewConnGene(globalInnovNum, oldIn, newNode.id)
-	newConn2 := NewConnGene(globalInnovNum+1, newNode.id, oldOut)
+	// The first connection that will be created by spliting an existing
+	// connection will have a weight of 1.0, and will be connected from
+	// the in-node of the existing node to the newly created node.
+	newConn1 := NewConnGene(globalInnovNum, oldIn, newNode.id, 1.0)
+	globalInnovNum++
+
+	// The second new connection will have the same weight as the existing
+	// connection, in order to prevent sudden changes after the mutation, and
+	// will be connected from the new node to the out-node of the existing
+	// connection.
+	newConn2 := NewConnGene(globalInnovNum, newNode.id, oldOut, g.conns[ci].weight)
+	globalInnovNum++
+
 	g.conns = append(g.conns, newConn1)
 	g.conns = append(g.conns, newConn2)
-	globalInnovNum += 2
 
+	// The original connection gene is now disabled.
 	g.conns[ci].switchConn()
-	g.numHidden++
 }
 
 // mutateAddConn mutates the genome by adding a connection between
 // two nodes. A new connection can be added from a node to itself.
 func (g *Genome) mutateAddConn() {
+	// The in-node of the connection to be added can be selected
+	// randomly from any node genes.
 	in := rand.Intn(len(g.nodes))
+
+	// The out-node can only be randomly selected from nodes that are
+	// not sensor nodes.
 	out := rand.Intn(len(g.nodes[g.numSensors+1:])) + g.numSensors + 1
 
+	// A new connection gene is added between the two selected nodes.
 	newConn := NewConnGene(globalInnovNum, in, out)
 	g.conns = append(g.conns, newConn)
 	globalInnovNum++
