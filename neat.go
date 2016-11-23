@@ -35,11 +35,15 @@ for the Go code in this page.
 
 package neat
 
+import (
+	"errors"
+)
+
 var (
 	// globalInnovNum is a global variable that keeps track of
 	// the chronology of the evolution; it is initialized as 0.
 	// Users cannot directly access globalInnovNum.
-	globalInnovationNumber = 0
+	globalInnovNum = 0
 )
 
 // Param is a wrapper for all parameters of NEAT.
@@ -54,29 +58,48 @@ type Param struct {
 	MutWeightRate  float64 // mutation rate of weights of connections
 }
 
+// IsValid checks the parameter's validity. It returns an error that
+// indicates the invalid portion of the parameter; return nil otherwise.
+func (p *Param) IsValid() error {
+	// number of sensors and outputs
+	if p.NumSensors < 1 || p.NumOutputs < 1 {
+		return errors.New("Invalid number of sensors and/or outputs")
+	}
+	// population size
+	if p.PopulationSize < 1 {
+		return errors.New("Invalid size of population")
+	}
+	// crossover rate
+	if p.CrossoverRate < 0.0 {
+		return errors.New("Invalid crossover rate")
+	}
+	// mutation rate for adding a node
+	if p.MutAddNodeRate < 0.0 || p.MutAddConnRate < 0.0 || p.MutWeightRate < 0.0 {
+		return errors.New("Invalid mutation rate")
+	}
+	return nil
+}
+
 // NEAT is an implementation of NeuroEvolution of Augmenting
 // Topologies; it includes
 type NEAT struct {
-	param    *Param          // NEAT parameters
-	evalFunc *EvaluationFunc // evaluation function
-
-	population []*Genome  // population of genomes
-	species    []*Species // ordered list of species
+	param      *Param          // NEAT parameters
+	evalFunc   *EvaluationFunc // evaluation function
+	population []*Genome       // population of genomes
+	species    []*Species      // ordered list of species
 }
 
 // New creates NEAT and initializes its environment given a set of parameters.
 func New(param *Param, evalFunc *EvaluationFunc) (*NEAT, error) {
-	// initialize global innovation number
-	globalInnovNum = (param.NumSensors + 1) * param.NumOutputs
-
+	// check if parameter is valid
+	err := param.IsValid()
+	if err != nil {
+		return nil, err
+	}
 	// initialize population
 	population := make([]*Genome, param.PopulationSize)
 	for i := range population {
-		genome, err := NewGenome(i, param.NumSensors, param.NumOutputs)
-		if err != nil {
-			return nil, err
-		}
-		population[i] = genome
+		population[i] = NewGenome(i, param)
 	}
 	return &NEAT{
 		param:      param,

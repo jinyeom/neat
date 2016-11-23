@@ -10,12 +10,16 @@ import (
 func TestGenome(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 
+	// Test creating a new genome
 	fmt.Printf("=== Creating a Genome ===\n")
-	g, err := NewGenome(0, 3, 2)
-	if err != nil {
-		panic(err)
-	}
-	globalInnovNum = 8
+	g := NewGenome(0, &Param{
+		NumSensors:     3,
+		NumOutputs:     2,
+		PopulationSize: 1,
+		MutAddNodeRate: 0.1,
+		MutAddConnRate: 0.1,
+		MutWeightRate:  0.1,
+	})
 	fmt.Printf("GID: %d\n", g.ID())
 	fmt.Printf("Nodes:\n")
 	nodes := g.Nodes()
@@ -35,9 +39,8 @@ func TestGenome(t *testing.T) {
 	fmt.Printf("Current innovation number: %d\n", globalInnovNum)
 	fmt.Println()
 
-	fmt.Printf("=== Genome Mutation ===\n")
-
-	fmt.Printf("Mutate Add Node\n")
+	// Test mutation by adding a node
+	fmt.Printf("=== Mutation by Adding Node ===\n")
 	g.mutateAddNode()
 	fmt.Printf("Nodes after mutation:\n")
 	nodes = g.Nodes()
@@ -57,7 +60,8 @@ func TestGenome(t *testing.T) {
 	fmt.Printf("Current innovation number: %d\n", globalInnovNum)
 	fmt.Println()
 
-	fmt.Printf("Mutate Add Connection\n")
+	// Test mutation by adding a new connection
+	fmt.Printf("=== Mutation by Adding Connection ===\n")
 	g.mutateAddConn()
 	fmt.Printf("Nodes after mutation:\n")
 	nodes = g.Nodes()
@@ -77,12 +81,9 @@ func TestGenome(t *testing.T) {
 	fmt.Printf("Current innovation number: %d\n", globalInnovNum)
 	fmt.Println()
 
+	// Test overall mutation of a genome
 	fmt.Printf("Overall mutation\n")
-	g.Mutate(&Config{
-		MutAddNodeRate: 0.1,
-		MutAddConnRate: 0.1,
-		MutWeightRate:  0.1,
-	})
+	g.Mutate()
 	fmt.Printf("Nodes after mutation:\n")
 	nodes = g.Nodes()
 	for _, n := range nodes {
