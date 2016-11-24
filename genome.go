@@ -123,6 +123,13 @@ func (g *Genome) Copy() *Genome {
 	}
 }
 
+// Compatibility returns the compatibility distance between this genome
+// and the argument genome. The compatibility distance is a measurement
+// of two genomes' compatibility for speciating them.
+func (g *Genome) Compatibility(g1 *Genome) float64 {
+	
+}
+
 // Crossover returns children genome created by crossover operation
 // between this genome and other genome provided as an argument.
 func Crossover(g0, g1 *Genome) (*Genome, *Genome) {
