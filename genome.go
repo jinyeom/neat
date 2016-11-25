@@ -44,7 +44,8 @@ import (
 // of hidden nodes, nodes and connections within the network, and the
 // genome's fitness value.
 type Genome struct {
-	id int // genome ID
+	id  int // genome ID
+	sid int // species ID
 
 	param *Param // parameters of NEAT
 
@@ -81,6 +82,11 @@ func NewGenome(id int, param *Param) *Genome {
 // ID returns the genome's ID.
 func (g *Genome) ID() int {
 	return g.id
+}
+
+// SID returns the genome's species ID.
+func (g *Genome) SID() int {
+	return g.sid
 }
 
 // NumHiddenNodes returns the number of hidden nodes in the genome.
@@ -127,7 +133,7 @@ func (g *Genome) Copy() *Genome {
 // and the argument genome. The compatibility distance is a measurement
 // of two genomes' compatibility for speciating them.
 func (g *Genome) Compatibility(g1 *Genome) float64 {
-	
+
 }
 
 // Crossover returns children genome created by crossover operation
