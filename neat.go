@@ -36,8 +36,8 @@ for the Go code in this page.
 package neat
 
 import (
-	"errors"
 	"bufio"
+	"errors"
 	"strings"
 )
 

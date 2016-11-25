@@ -36,17 +36,16 @@ for the Go code in this page.
 package neat
 
 import (
-	"os"
 	"bufio"
+	"os"
 	"strings"
 )
 
 // Param is a wrapper for all parameters of NEAT.
 type Param struct {
-	NumSensors     int // number of sensors
-	NumOutputs     int // number of outputs
-	PopulationSize int // population size
-
+	NumSensors     int     // number of sensors
+	NumOutputs     int     // number of outputs
+	PopulationSize int     // population size
 	CrossoverRate  float64 // crossover rate
 	MutAddNodeRate float64 // mutation rate for adding a node
 	MutAddConnRate float64 // mutation rate for adding a connection
@@ -54,7 +53,19 @@ type Param struct {
 }
 
 // NewParam creates a new NEAT parameter wrapper, given a name of a parameter
-// file that contains its presets.
+// file that contains its presets. A parameter file must have a ".np"
+// extension and must be structured as the following example:
+//
+// example_param.np:
+//
+//  NumSensors 5
+//  NumOutputs 3
+//  PopulationSize 50
+//  CrossoverRate 0.1
+//  MutAddNodeRate 0.1
+//  MutAddConnRate 0.1
+//  MutWeightRate 0.1
+//
 func NewParam(filename string) (*Param, error) {
 	// parse parameter file
 	f, err := os.Open(filename)
