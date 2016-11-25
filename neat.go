@@ -37,48 +37,33 @@ package neat
 
 import (
 	"errors"
+	"bufio"
+	"strings"
+)
+
+const (
+	// paramFileExt is the extension of a parameter file, np, which
+	// stands for NEAT parameter.
+	paramFileExt = ".np"
 )
 
 var (
 	// globalInnovNum is a global variable that keeps track of
 	// the chronology of the evolution; it is initialized as 0.
-	// Users cannot directly access globalInnovNum.
 	globalInnovNum = 0
+
+	// nodeInnovations is a global list of structural innovations of newly added
+	// nodes that are added during mutations; this list of innovations
+	// maps innovation numbers of connections that are split due to a mutation
+	// to innovation numbers of nodes that split them.
+	nodeInnovations = make(map[int]int)
+
+	// connInnovations is a global list of structural innovation of newly added
+	// connections that are added during mutations; this list of innovations
+	// maps IDs of nodes that are connected due to mutations to innovation
+	// numbers of connections that connect them.
+	connInnovations = make(map[[]int]int)
 )
-
-// Param is a wrapper for all parameters of NEAT.
-type Param struct {
-	NumSensors     int // number of sensors
-	NumOutputs     int // number of outputs
-	PopulationSize int // population size
-
-	CrossoverRate  float64 // crossover rate
-	MutAddNodeRate float64 // mutation rate for adding a node
-	MutAddConnRate float64 // mutation rate for adding a connection
-	MutWeightRate  float64 // mutation rate of weights of connections
-}
-
-// IsValid checks the parameter's validity. It returns an error that
-// indicates the invalid portion of the parameter; return nil otherwise.
-func (p *Param) IsValid() error {
-	// number of sensors and outputs
-	if p.NumSensors < 1 || p.NumOutputs < 1 {
-		return errors.New("Invalid number of sensors and/or outputs")
-	}
-	// population size
-	if p.PopulationSize < 1 {
-		return errors.New("Invalid size of population")
-	}
-	// crossover rate
-	if p.CrossoverRate < 0.0 {
-		return errors.New("Invalid crossover rate")
-	}
-	// mutation rate for adding a node
-	if p.MutAddNodeRate < 0.0 || p.MutAddConnRate < 0.0 || p.MutWeightRate < 0.0 {
-		return errors.New("Invalid mutation rate")
-	}
-	return nil
-}
 
 // NEAT is an implementation of NeuroEvolution of Augmenting
 // Topologies; it includes
