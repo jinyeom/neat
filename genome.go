@@ -136,13 +136,13 @@ func (g *Genome) Compatibility(g1 *Genome) float64 {
 
 }
 
-// Crossover returns children genome created by crossover operation
+// Crossover returns a child genome created by crossover operation
 // between this genome and other genome provided as an argument.
-func Crossover(g0, g1 *Genome) (*Genome, *Genome) {
-	child1 := g0.Copy()
-	child2 := g1.Copy()
+func Crossover(g0, g1 *Genome) *Genome {
 
-	return child1, child2
+	// to be implemented
+
+	return &Genome{}
 }
 
 // Mutate mutates the genome by adding a node, adding a connection,
