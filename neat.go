@@ -35,18 +35,6 @@ for the Go code in this page.
 
 package neat
 
-import (
-	"bufio"
-	"errors"
-	"strings"
-)
-
-const (
-	// paramFileExt is the extension of a parameter file, np, which
-	// stands for NEAT parameter.
-	paramFileExt = ".np"
-)
-
 var (
 	// globalInnovNum is a global variable that keeps track of
 	// the chronology of the evolution; it is initialized as 0.
@@ -62,7 +50,7 @@ var (
 	// connections that are added during mutations; this list of innovations
 	// maps IDs of nodes that are connected due to mutations to innovation
 	// numbers of connections that connect them.
-	connInnovations = make(map[[]int]int)
+	connInnovations = make(map[[2]int]int)
 )
 
 // NEAT is an implementation of NeuroEvolution of Augmenting

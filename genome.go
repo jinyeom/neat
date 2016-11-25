@@ -134,6 +134,9 @@ func (g *Genome) Copy() *Genome {
 // of two genomes' compatibility for speciating them.
 func (g *Genome) Compatibility(g1 *Genome) float64 {
 
+	// to be implemented
+
+	return 0.0
 }
 
 // Crossover returns a child genome created by crossover operation

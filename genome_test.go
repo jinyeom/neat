@@ -39,9 +39,9 @@ func TestGenome(t *testing.T) {
 	fmt.Printf("Current innovation number: %d\n", globalInnovNum)
 	fmt.Println()
 
-	// Test mutation by adding a node
-	fmt.Printf("=== Mutation by Adding Node ===\n")
-	g.mutateAddNode()
+	// Test mutation by adding a new connection
+	fmt.Printf("=== Mutation by Adding Connection ===\n")
+	g.mutateAddConn()
 	fmt.Printf("Nodes after mutation:\n")
 	nodes = g.Nodes()
 	for _, n := range nodes {
@@ -60,9 +60,9 @@ func TestGenome(t *testing.T) {
 	fmt.Printf("Current innovation number: %d\n", globalInnovNum)
 	fmt.Println()
 
-	// Test mutation by adding a new connection
-	fmt.Printf("=== Mutation by Adding Connection ===\n")
-	g.mutateAddConn()
+	// Test mutation by adding a node
+	fmt.Printf("=== Mutation by Adding Node ===\n")
+	g.mutateAddNode()
 	fmt.Printf("Nodes after mutation:\n")
 	nodes = g.Nodes()
 	for _, n := range nodes {

@@ -37,8 +37,18 @@ package neat
 
 import (
 	"bufio"
+	"errors"
+	"fmt"
 	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
+)
+
+const (
+	// paramFileExt is the extension of a parameter file, np, which
+	// stands for NEAT parameter.
+	paramFileExt = ".np"
 )
 
 // Param is a wrapper for all parameters of NEAT.
@@ -73,6 +83,11 @@ func NewParam(filename string) (*Param, error) {
 		return nil, err
 	}
 	defer f.Close()
+
+	// check file extension
+	if ext := filepath.Ext(filename); ext != paramFileExt {
+		return nil, fmt.Errorf("Invalid file type: %s", ext)
+	}
 
 	// initialize presets as empty
 	param := &Param{}
@@ -120,7 +135,7 @@ func NewParam(filename string) (*Param, error) {
 		}
 	}
 
-	return param
+	return param, nil
 }
 
 // IsValid checks the parameter's validity. It returns an error that
