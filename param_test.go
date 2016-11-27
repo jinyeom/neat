@@ -14,4 +14,6 @@ func TestParam(t *testing.T) {
 	if err = p.IsValid(); err != nil {
 		panic(err)
 	}
+  fmt.Printf("Number of sensors: %d\n", p.NumSensors)
+  fmt.Printf("Number of outputs: %d\n", p.NumOutputs)
 }
