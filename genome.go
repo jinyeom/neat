@@ -184,6 +184,8 @@ func (g *Genome) mutateAddNode() {
 		innov := nodeInnovations[g.conns[ci].innov]
 		if innov == 0 {
 			innov = globalInnovNum
+			// register the new node innovation
+			nodeInnovations[g.conns[ci].innov] = innov
 			globalInnovNum++
 		}
 		newNode := NewNodeGene(innov, "hidden", Sigmoid())
@@ -233,9 +235,11 @@ func (g *Genome) mutateAddConn() {
 	// selected nodes. If the connection innovation already exists, use
 	// the same innovation number as before; use global innovation number,
 	// otherwise.
-	innov := connInnovations[[]int{g.nodes[in].id, g.nodes[out].id}]
+	innov := connInnovations[[2]int{g.nodes[in].id, g.nodes[out].id}]
 	if innov == 0 {
 		innov = globalInnovNum
+		// register the new connection innovation
+		connInnovations[[2]int{g.nodes[in].id, g.nodes[out].id}] = innov
 		globalInnovNum++
 	}
 	g.conns = append(g.conns, NewConnGene(innov, in, out, rand.NormFloat64()))

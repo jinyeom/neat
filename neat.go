@@ -69,6 +69,8 @@ func New(param *Param, evalFunc *EvaluationFunc) (*NEAT, error) {
 	if err != nil {
 		return nil, err
 	}
+	// initialize global innovation number
+	globalInnovNum = param.NumSensors + param.NumOutputs
 	// initialize population
 	population := make([]*Genome, param.PopulationSize)
 	for i := range population {

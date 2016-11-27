@@ -10,6 +10,8 @@ import (
 func TestGenome(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 
+	globalInnovNum = 5
+
 	// Test creating a new genome
 	fmt.Printf("=== Creating a Genome ===\n")
 	g := NewGenome(0, &Param{
