@@ -178,10 +178,16 @@ func (g *Genome) mutateAddNode() {
 		oldOut := g.conns[ci].Out()
 
 		// Create a new node that will be placed between a connection of
-		// two nodes.
-		newNode := NewNodeGene(globalInnovNum, "hidden", Sigmoid())
+		// two nodes. First check if this node innovation exists already:
+		// if it does, use the same innovation as the saved innovation
+		// number; use the global innovation number otherwise.
+		innov := nodeInnovations[g.conns[ci].innov]
+		if innov == 0 {
+			innov = globalInnovNum
+			globalInnovNum++
+		}
+		newNode := NewNodeGene(innov, "hidden", Sigmoid())
 		g.nodes = append(g.nodes, newNode)
-		globalInnovNum++
 
 		// The first connection that will be created by spliting an existing
 		// connection will have a weight of 1.0, and will be connected from
@@ -224,8 +230,13 @@ func (g *Genome) mutateAddConn() {
 	}
 
 	// A new connection gene with a random weight is added between the
-	// selected nodes.
-	newConn := NewConnGene(globalInnovNum, in, out, rand.NormFloat64())
-	g.conns = append(g.conns, newConn)
-	globalInnovNum++
+	// selected nodes. If the connection innovation already exists, use
+	// the same innovation number as before; use global innovation number,
+	// otherwise.
+	innov := connInnovations[[]int{g.nodes[in].id, g.nodes[out].id}]
+	if innov == 0 {
+		innov = globalInnovNum
+		globalInnovNum++
+	}
+	g.conns = append(g.conns, NewConnGene(innov, in, out, rand.NormFloat64()))
 }
