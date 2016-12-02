@@ -42,3 +42,7 @@ type Species struct {
 	id      int       // species ID
 	genomes []*Genome // genomes in this species
 }
+
+func NewSpecies(id int, g *Genome) *Species {
+  
+}
