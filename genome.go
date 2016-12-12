@@ -44,7 +44,7 @@ import (
 // of hidden nodes, nodes and connections within the network, and the
 // genome's fitness value.
 type Genome struct {
-	id  int // genome ID
+	gid int // genome ID
 	sid int // species ID
 
 	param *Param // parameters of NEAT
@@ -58,7 +58,7 @@ type Genome struct {
 // NewGenome creates a new genome in its initial state; it only creates
 // sensor nodes and output nodes with no connections. Connections are
 // expected to be added via mutations as evolution progresses.
-func NewGenome(id int, param *Param) *Genome {
+func NewGenome(gid int, param *Param) *Genome {
 	// number of nodes and connections including bias
 	numNodes := param.NumSensors + param.NumOutputs
 	nodes := make([]*NodeGene, 0, numNodes)
@@ -71,7 +71,8 @@ func NewGenome(id int, param *Param) *Genome {
 	}
 
 	return &Genome{
-		id:      id,
+		gid:     gid,
+		sid:     0,
 		param:   param,
 		nodes:   nodes,
 		conns:   make([]*ConnGene, 0),
@@ -79,14 +80,25 @@ func NewGenome(id int, param *Param) *Genome {
 	}
 }
 
-// ID returns the genome's ID.
-func (g *Genome) ID() int {
-	return g.id
+// GID returns the genome's ID.
+func (g *Genome) GID() int {
+	return g.gid
 }
 
 // SID returns the genome's species ID.
 func (g *Genome) SID() int {
 	return g.sid
+}
+
+// Size returns the genome's size (number of nodes and connections).
+func (g *Genome) Size() int {
+	size := len(g.nodes)
+	for _, c := range g.conns {
+		if c.disabled {
+			size++
+		}
+	}
+	return size
 }
 
 // NumHiddenNodes returns the number of hidden nodes in the genome.
@@ -107,7 +119,8 @@ func (g *Genome) Conns() []*ConnGene {
 // Copy returns a deep copy of this genome.
 func (g *Genome) Copy() *Genome {
 	return &Genome{
-		id:    g.id,
+		gid:   g.gid,
+		sid:   g.sid,
 		param: g.param,
 		// deep copy of nodes
 		nodes: func() []*NodeGene {
@@ -133,9 +146,6 @@ func (g *Genome) Copy() *Genome {
 // and the argument genome. The compatibility distance is a measurement
 // of two genomes' compatibility for speciating them.
 func (g *Genome) Compatibility(g1 *Genome) float64 {
-
-	// to be implemented
-
 	return 0.0
 }
 
@@ -177,31 +187,21 @@ func (g *Genome) mutateAddNode() {
 		oldIn := g.conns[ci].In()
 		oldOut := g.conns[ci].Out()
 
-		// Create a new node that will be placed between a connection of
-		// two nodes. First check if this node innovation exists already:
-		// if it does, use the same innovation as the saved innovation
-		// number; use the global innovation number otherwise.
-		innov := nodeInnovations[g.conns[ci].innov]
-		if innov == 0 {
-			innov = globalInnovNum
-			// register the new node innovation
-			nodeInnovations[g.conns[ci].innov] = innov
-			globalInnovNum++
-		}
-		newNode := NewNodeGene(innov, "hidden", Sigmoid())
+		// Create a new node that will be placed between a connection
+		newNode := NewNodeGene(len(g.nodes), "hidden", Sigmoid())
 		g.nodes = append(g.nodes, newNode)
 
 		// The first connection that will be created by spliting an existing
 		// connection will have a weight of 1.0, and will be connected from
 		// the in-node of the existing node to the newly created node.
-		newConn1 := NewConnGene(globalInnovNum, oldIn, newNode.id, 1.0)
+		newConn1 := NewConnGene(globalInnovNum, oldIn, newNode.nid, 1.0)
 		globalInnovNum++
 
 		// The second new connection will have the same weight as the existing
 		// connection, in order to prevent sudden changes after the mutation, and
 		// will be connected from the new node to the out-node of the existing
 		// connection.
-		newConn2 := NewConnGene(globalInnovNum, newNode.id, oldOut, g.conns[ci].weight)
+		newConn2 := NewConnGene(globalInnovNum, newNode.nid, oldOut, g.conns[ci].weight)
 		globalInnovNum++
 
 		g.conns = append(g.conns, newConn1)
@@ -235,11 +235,11 @@ func (g *Genome) mutateAddConn() {
 	// selected nodes. If the connection innovation already exists, use
 	// the same innovation number as before; use global innovation number,
 	// otherwise.
-	innov := connInnovations[[2]int{g.nodes[in].id, g.nodes[out].id}]
+	innov := connInnovations[[2]int{g.nodes[in].nid, g.nodes[out].nid}]
 	if innov == 0 {
 		innov = globalInnovNum
 		// register the new connection innovation
-		connInnovations[[2]int{g.nodes[in].id, g.nodes[out].id}] = innov
+		connInnovations[[2]int{g.nodes[in].nid, g.nodes[out].nid}] = innov
 		globalInnovNum++
 	}
 	g.conns = append(g.conns, NewConnGene(innov, in, out, rand.NormFloat64()))

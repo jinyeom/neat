@@ -44,5 +44,5 @@ type Species struct {
 }
 
 func NewSpecies(id int, g *Genome) *Species {
-  
+	return &Species{}
 }

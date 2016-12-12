@@ -43,24 +43,24 @@ import (
 // Each node includes a node ID (NID), a node type (NType), and
 // a pointer to an activation function.
 type NodeGene struct {
-	id    int             // node ID
+	nid   int             // node ID
 	ntype string          // node type
 	afn   *ActivationFunc // activation function
 }
 
 // NewNodeGene creates a new node gene with the given NID, node type, and
 // a pointer to an activation function.
-func NewNodeGene(id int, ntype string, afn *ActivationFunc) *NodeGene {
+func NewNodeGene(nid int, ntype string, afn *ActivationFunc) *NodeGene {
 	return &NodeGene{
-		id:    id,
+		nid:   nid,
 		ntype: ntype,
 		afn:   afn,
 	}
 }
 
-// ID returns the node's node ID.
-func (n *NodeGene) ID() int {
-	return n.id
+// NID returns the node's node ID.
+func (n *NodeGene) NID() int {
+	return n.nid
 }
 
 // NType returns the node's node type (NType).
@@ -76,7 +76,7 @@ func (n *NodeGene) Afn() *ActivationFunc {
 // Copy returns a deep copy of this gene.
 func (n *NodeGene) Copy() *NodeGene {
 	return &NodeGene{
-		id:    n.id,
+		nid:   n.nid,
 		ntype: n.ntype,
 		afn:   n.afn,
 	}

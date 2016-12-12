@@ -5,3 +5,4 @@ CrossoverRate 0.1
 MutAddNodeRate 0.1
 MutAddConnRate 0.1
 MutWeightRate 0.1
+

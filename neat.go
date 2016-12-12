@@ -37,20 +37,15 @@ package neat
 
 var (
 	// globalInnovNum is a global variable that keeps track of
-	// the chronology of the evolution; it is initialized as 0.
-	globalInnovNum = 0
+	// the chronology of the evolution; it is initialized as 1,
+	// since 0 is reserved for innovation map's zero value.
+	globalInnovNum = 1
 
-	// nodeInnovations is a global list of structural innovations of newly added
-	// nodes that are added during mutations; this list of innovations
-	// maps innovation numbers of connections that are split due to a mutation
-	// to innovation numbers of nodes that split them.
-	nodeInnovations = make(map[int]int)
-
-	// connInnovations is a global list of structural innovation of newly added
+	// innovations is a global list of structural innovation of newly added
 	// connections that are added during mutations; this list of innovations
 	// maps IDs of nodes that are connected due to mutations to innovation
 	// numbers of connections that connect them.
-	connInnovations = make(map[[2]int]int)
+	innovations = make(map[[2]int]int)
 )
 
 // NEAT is an implementation of NeuroEvolution of Augmenting
@@ -69,8 +64,6 @@ func New(param *Param, evalFunc *EvaluationFunc) (*NEAT, error) {
 	if err != nil {
 		return nil, err
 	}
-	// initialize global innovation number
-	globalInnovNum = param.NumSensors + param.NumOutputs
 	// initialize population
 	population := make([]*Genome, param.PopulationSize)
 	for i := range population {

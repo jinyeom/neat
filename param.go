@@ -60,6 +60,9 @@ type Param struct {
 	MutAddNodeRate float64 // mutation rate for adding a node
 	MutAddConnRate float64 // mutation rate for adding a connection
 	MutWeightRate  float64 // mutation rate of weights of connections
+	CoeffExcess    float64 // coefficient for excess
+	CoeffDisjoint  float64 // coefficient for disjoint
+	CoeffWeight    float64 // coefficient for average weight
 }
 
 // NewParam creates a new NEAT parameter wrapper, given a name of a parameter
@@ -75,6 +78,9 @@ type Param struct {
 //  MutAddNodeRate 0.1
 //  MutAddConnRate 0.1
 //  MutWeightRate 0.1
+//  CoeffExcess 0.5
+//  CoeffDisjoint 0.5
+//  CoeffWeight 0.5
 //
 func NewParam(filename string) (*Param, error) {
 	// parse parameter file
@@ -132,6 +138,26 @@ func NewParam(filename string) (*Param, error) {
 				return nil, err
 			}
 			param.MutWeightRate = mutWeightRate
+		case "CoeffExcess":
+			coeffExcess, err := strconv.ParseFloat(parsed[1], 64)
+			if err != nil {
+				return nil, err
+			}
+			param.CoeffExcess = coeffExcess
+		case "CoeffDisjoint":
+			coeffDisjoint, err := strconv.ParseFloat(parsed[1], 64)
+			if err != nil {
+				return nil, err
+			}
+			param.CoeffDisjoint = coeffDisjoint
+		case "CoeffWeight":
+			coeffWeight, err := strconv.ParseFloat(parsed[1], 64)
+			if err != nil {
+				return nil, err
+			}
+			param.CoeffWeight = coeffWeight
+		default:
+			return nil, errors.New("Invalid entry in the parameter file")
 		}
 	}
 
@@ -156,6 +182,10 @@ func (p *Param) IsValid() error {
 	// mutation rate for adding a node
 	if p.MutAddNodeRate < 0.0 || p.MutAddConnRate < 0.0 || p.MutWeightRate < 0.0 {
 		return errors.New("Invalid mutation rate")
+	}
+	// coefficient for excess and disjoint genes
+	if p.CoeffExcess < 0.0 || p.CoeffDisjoint < 0.0 {
+		return errors.New("Invalid coefficient for excess/disjoint genes")
 	}
 	return nil
 }
