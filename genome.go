@@ -59,15 +59,31 @@ type Genome struct {
 // sensor nodes and output nodes with no connections. Connections are
 // expected to be added via mutations as evolution progresses.
 func NewGenome(gid int, param *Param) *Genome {
-	// number of nodes and connections including bias
+	// initial number of nodes and connections
 	numNodes := param.NumSensors + param.NumOutputs
+	numConns := param.NumSensors * param.NumOutputs
 	nodes := make([]*NodeGene, 0, numNodes)
+	conns := make([]*ConnGene, 0, numConns)
 
 	for i := 0; i < param.NumSensors; i++ {
-		nodes = append(nodes, NewNodeGene(i, "sensor", Identity()))
+		n := NewNodeGene(i, "sensor", Identity())
+		nodes = append(nodes, n)
 	}
 	for i := param.NumSensors; i < numNodes; i++ {
-		nodes = append(nodes, NewNodeGene(i, "output", Sigmoid()))
+		n := NewNodeGene(i, "output", Sigmoid())
+		nodes = append(nodes, n)
+		// connect the new output node to all input nodes
+		for j := 0; j < param.NumSensors; j++ {
+			innov := innovations[[2]int{nodes[j].nid, n.nid}]
+			if innov == 0 {
+				innov = globalInnovNum
+				// register the new connection innovation
+				innovations[[2]int{nodes[j].nid, n.nid}] = innov
+				globalInnovNum++
+			}
+			c := NewConnGene(innov, nodes[j].nid, n.nid, rand.NormFloat64())
+			conns = append(conns, c)
+		}
 	}
 
 	return &Genome{
@@ -75,7 +91,7 @@ func NewGenome(gid int, param *Param) *Genome {
 		sid:     0,
 		param:   param,
 		nodes:   nodes,
-		conns:   make([]*ConnGene, 0),
+		conns:   conns,
 		fitness: 0.0,
 	}
 }
@@ -92,9 +108,10 @@ func (g *Genome) SID() int {
 
 // Size returns the genome's size (number of nodes and connections).
 func (g *Genome) Size() int {
-	size := len(g.nodes)
+	size := g.NumHiddenNodes()
 	for _, c := range g.conns {
-		if c.disabled {
+		// only count enabled connections
+		if !c.disabled {
 			size++
 		}
 	}
@@ -194,15 +211,27 @@ func (g *Genome) mutateAddNode() {
 		// The first connection that will be created by spliting an existing
 		// connection will have a weight of 1.0, and will be connected from
 		// the in-node of the existing node to the newly created node.
-		newConn1 := NewConnGene(globalInnovNum, oldIn, newNode.nid, 1.0)
-		globalInnovNum++
+		innov := innovations[[2]int{oldIn, newNode.nid}]
+		if innov == 0 {
+			innov = globalInnovNum
+			// register the new connection innovation
+			innovations[[2]int{oldIn, newNode.nid}] = innov
+			globalInnovNum++
+		}
+		newConn1 := NewConnGene(innov, oldIn, newNode.nid, 1.0)
 
 		// The second new connection will have the same weight as the existing
 		// connection, in order to prevent sudden changes after the mutation, and
 		// will be connected from the new node to the out-node of the existing
 		// connection.
-		newConn2 := NewConnGene(globalInnovNum, newNode.nid, oldOut, g.conns[ci].weight)
-		globalInnovNum++
+		innov = innovations[[2]int{newNode.nid, oldOut}]
+		if innov == 0 {
+			innov = globalInnovNum
+			// register the new connection innovation
+			innovations[[2]int{newNode.nid, oldOut}] = innov
+			globalInnovNum++
+		}
+		newConn2 := NewConnGene(innov, newNode.nid, oldOut, g.conns[ci].weight)
 
 		g.conns = append(g.conns, newConn1)
 		g.conns = append(g.conns, newConn2)
@@ -235,11 +264,11 @@ func (g *Genome) mutateAddConn() {
 	// selected nodes. If the connection innovation already exists, use
 	// the same innovation number as before; use global innovation number,
 	// otherwise.
-	innov := connInnovations[[2]int{g.nodes[in].nid, g.nodes[out].nid}]
+	innov := innovations[[2]int{g.nodes[in].nid, g.nodes[out].nid}]
 	if innov == 0 {
 		innov = globalInnovNum
 		// register the new connection innovation
-		connInnovations[[2]int{g.nodes[in].nid, g.nodes[out].nid}] = innov
+		innovations[[2]int{g.nodes[in].nid, g.nodes[out].nid}] = innov
 		globalInnovNum++
 	}
 	g.conns = append(g.conns, NewConnGene(innov, in, out, rand.NormFloat64()))

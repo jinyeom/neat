@@ -53,16 +53,22 @@ const (
 
 // Param is a wrapper for all parameters of NEAT.
 type Param struct {
-	NumSensors     int     // number of sensors
-	NumOutputs     int     // number of outputs
-	PopulationSize int     // population size
+	// Topology parameter
+	NumSensors int // number of sensors
+	NumOutputs int // number of outputs
+
+	PopulationSize int // population size
+
+	// Crossover and Mutation rates
 	CrossoverRate  float64 // crossover rate
 	MutAddNodeRate float64 // mutation rate for adding a node
 	MutAddConnRate float64 // mutation rate for adding a connection
 	MutWeightRate  float64 // mutation rate of weights of connections
-	CoeffExcess    float64 // coefficient for excess
-	CoeffDisjoint  float64 // coefficient for disjoint
-	CoeffWeight    float64 // coefficient for average weight
+
+	// Coefficients for compatibility distance
+	CoeffExcess   float64 // coefficient for excess
+	CoeffDisjoint float64 // coefficient for disjoint
+	CoeffWeight   float64 // coefficient for average weight
 }
 
 // NewParam creates a new NEAT parameter wrapper, given a name of a parameter
@@ -156,8 +162,6 @@ func NewParam(filename string) (*Param, error) {
 				return nil, err
 			}
 			param.CoeffWeight = coeffWeight
-		default:
-			return nil, errors.New("Invalid entry in the parameter file")
 		}
 	}
 
