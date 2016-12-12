@@ -37,6 +37,7 @@ package neat
 
 import (
 	"math/rand"
+	"sort"
 )
 
 // Genome is an implementation of genotype of an evolving network; it is
@@ -121,6 +122,33 @@ func (g *Genome) Conns() []*ConnGene {
 	return g.conns
 }
 
+// Node returns a node gene with the argument nid; returns nil if
+// a node with the nid doesn't exist.
+func (g *Genome) Node(nid int) *NodeGene {
+	i := sort.Search(len(g.nodes), func(int i) bool {
+		return g.nodes[i].nid == nid
+	})
+
+	if i < len(g.nodes) && g.nodes[i].nid == nid {
+		return g.nodes[i]
+	}
+	return nil
+}
+
+// Conn returns a connection gene with the arguement innovation
+// number; returns nil if a connection with the innovation number
+// doesn't exist.
+func (g *Genome) Conn(innov int) *ConnGene {
+	i := sort.Search(len(g.conns), func(int i) bool {
+		return g.conns[i].innov == innov
+	})
+
+	if i < len(g.conns) && g.conns[i].innov == innov {
+		return g.conns[i]
+	}
+	return nil
+}
+
 // Copy returns a deep copy of this genome.
 func (g *Genome) Copy() *Genome {
 	return &Genome{
@@ -162,8 +190,6 @@ func (g *Genome) Compatibility(g1 *Genome) float64 {
 	if len(small.conns) > len(large.conns) {
 		small, large = large, small
 	}
-
-	// to be implemented
 
 	return (g.param.CoeffExcess*e)/n +
 		(g.param.CoeffDisjoint*d)/n +
