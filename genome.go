@@ -106,18 +106,6 @@ func (g *Genome) SID() int {
 	return g.sid
 }
 
-// Size returns the genome's size (number of nodes and connections).
-func (g *Genome) Size() int {
-	size := g.NumHiddenNodes()
-	for _, c := range g.conns {
-		// only count enabled connections
-		if !c.disabled {
-			size++
-		}
-	}
-	return size
-}
-
 // NumHiddenNodes returns the number of hidden nodes in the genome.
 func (g *Genome) NumHiddenNodes() int {
 	return len(g.nodes) - (g.param.NumSensors + g.param.NumOutputs)
@@ -163,7 +151,24 @@ func (g *Genome) Copy() *Genome {
 // and the argument genome. The compatibility distance is a measurement
 // of two genomes' compatibility for speciating them.
 func (g *Genome) Compatibility(g1 *Genome) float64 {
-	return 0.0
+	distance := 0.0
+
+	d := 0   // number of disjoint genes
+	e := 0   // number of excess genes
+	w := 0.0 // average weight differences of matching genes
+
+	small := g  // genome with smaller number of connections
+	large := g1 // genome with larger number of connections
+	if len(small.conns) > len(large.conns) {
+		small, large = large, small
+	}
+
+	lastInnov := small.conns[len(small.conns)-1].innov
+	for i := 0; i < lastInnov; i++ {
+
+	}
+
+	return (g.param.CoeffExcess*e)/n + (g.param.CoeffDisjoint*d)/n + (g.param.CoeffWeight * w)
 }
 
 // Crossover returns a child genome created by crossover operation
