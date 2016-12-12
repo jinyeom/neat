@@ -163,12 +163,11 @@ func (g *Genome) Compatibility(g1 *Genome) float64 {
 		small, large = large, small
 	}
 
-	lastInnov := small.conns[len(small.conns)-1].innov
-	for i := 0; i < lastInnov; i++ {
+	// to be implemented
 
-	}
-
-	return (g.param.CoeffExcess*e)/n + (g.param.CoeffDisjoint*d)/n + (g.param.CoeffWeight * w)
+	return (g.param.CoeffExcess*e)/n +
+		(g.param.CoeffDisjoint*d)/n +
+		(g.param.CoeffWeight * w)
 }
 
 // Crossover returns a child genome created by crossover operation

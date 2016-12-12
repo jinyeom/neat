@@ -39,7 +39,7 @@ package neat
 // are separated by measuring compatibility distance among genomes
 // within a population.
 type Species struct {
-	id      int       // species ID
+	sid     int       // species ID
 	genomes []*Genome // genomes in this species
 }
 
