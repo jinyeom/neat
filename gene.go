@@ -168,6 +168,6 @@ func (c *ConnGene) switchConn() {
 // the connections' innovation numbers.
 type byInnov []*ConnGene
 
-func (b byNID) Len() int           { return len(b) }
-func (b byNID) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
-func (b byNID) Less(i, j int) bool { return b[i].innov < b[j].innov }
+func (b byInnov) Len() int           { return len(b) }
+func (b byInnov) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
+func (b byInnov) Less(i, j int) bool { return b[i].innov < b[j].innov }
