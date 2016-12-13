@@ -43,6 +43,26 @@ type Species struct {
 	genomes []*Genome // genomes in this species
 }
 
-func NewSpecies(id int, g *Genome) *Species {
-	return &Species{}
+// NewSpecies creates a new species given a species ID, and the genome
+// that first populates the new species.
+func NewSpecies(sid int, g *Genome) *Species {
+	return &Species{
+		sid:     sid,
+		genomes: []*Genome{g},
+	}
+}
+
+// SID returns this species' species ID.
+func (s *Species) SID() int {
+	return s.sid
+}
+
+// Genomes returns this species' member genomes.
+func (s *Species) Genomes() []*Genome {
+	return s.genomes
+}
+
+// AddGenome adds a new genome to this species.
+func (s *Speices) AddGenome(g *Genome) {
+	s.genome = append(s.genome, g)
 }
