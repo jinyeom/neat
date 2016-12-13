@@ -60,24 +60,28 @@ type NEAT struct {
 // New creates NEAT and initializes its environment given a set of parameters.
 func New(param *Param, evalFunc *EvaluationFunc) (*NEAT, error) {
 	// check if parameter is valid
-	err := param.IsValid()
-	if err != nil {
+	if err := param.IsValid(); err != nil {
 		return nil, err
 	}
+
 	// initialize population
 	population := make([]*Genome, param.PopulationSize)
 	for i := range population {
 		population[i] = NewGenome(i, param)
 	}
+
+	// initialize slice of species with one species
+	species := []*Species{NewSpecies(0, population[0])}
+
 	return &NEAT{
 		param:      param,
 		evalFunc:   evalFunc,
 		population: population,
-		species:    make([]*Species, 0), // to be fixed
+		species:    species,
 	}, nil
 }
 
-// Run starts the evolution process of NEAT.
+// Run executes NEAT algorithm.
 func (n *NEAT) Run() {
 
 }
