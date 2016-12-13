@@ -185,8 +185,8 @@ func (g *Genome) Compatibility(g1 *Genome) float64 {
 	numMatch := 0        // number of matching genes
 	avgWeightDiff := 0.0 // average weight differences of matching genes
 
-	small := g  // genome with smaller number of connections
-	large := g1 // genome with larger number of connections
+	small := g  // genome with smaller max innov
+	large := g1 // genome with larger max innov
 
 	// sort connections by innovation numbers
 	sort.Sort(byInnov(small.conns))
@@ -204,11 +204,10 @@ func (g *Genome) Compatibility(g1 *Genome) float64 {
 	for i := 0; i <= maxSmallInnov; i++ {
 		sc := small.Conn(i)
 		lc := large.Conn(i)
-		switch {
-		case sc != nil && lc != nil:
+		if sc != nil && lc != nil {
 			avgWeightDiff += math.Abs(sc.weight - lc.weight)
 			numMatch++
-		case (sc != nil && lc == nil) || (sc == nil && lc != nil):
+		} else if (sc != nil && lc == nil) || (sc == nil && lc != nil) {
 			numDisjoint++
 		}
 	}
@@ -226,9 +225,8 @@ func (g *Genome) Compatibility(g1 *Genome) float64 {
 		}
 	}
 
-	n := float64(len(large.conns))
-	return (g.param.CoeffExcess*float64(numExcess))/n +
-		(g.param.CoeffDisjoint*float64(numDisjoint))/n +
+	return (g.param.CoeffExcess * float64(numExcess)) +
+		(g.param.CoeffDisjoint * float64(numDisjoint)) +
 		(g.param.CoeffWeight * avgWeightDiff)
 }
 
