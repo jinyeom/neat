@@ -82,13 +82,13 @@ func (n *NodeGene) Copy() *NodeGene {
 	}
 }
 
-// ByNID implements sort.Interface for []*NodeGene based on
+// byNID implements sort.Interface for []*NodeGene based on
 // the nodes' NIDs.
-type ByNID []*NodeGene
+type byNID []*NodeGene
 
-func (b ByNID) Len() int           { return len(b) }
-func (b ByNID) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
-func (b ByNID) Less(i, j int) bool { return b[i].nid < b[j].nid }
+func (b byNID) Len() int           { return len(b) }
+func (b byNID) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
+func (b byNID) Less(i, j int) bool { return b[i].nid < b[j].nid }
 
 // ConnGene is an implementation of each connection within a genome.
 // It represents a connection between an in-node and an out-node;
@@ -164,10 +164,10 @@ func (c *ConnGene) switchConn() {
 	c.disabled = !c.disabled
 }
 
-// ByInnov implements sort.Interface for []*ConnGene based on
+// byInnov implements sort.Interface for []*ConnGene based on
 // the connections' innovation numbers.
-type ByInnov []*ConnGene
+type byInnov []*ConnGene
 
-func (b ByNID) Len() int           { return len(b) }
-func (b ByNID) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
-func (b ByNID) Less(i, j int) bool { return b[i].innov < b[j].innov }
+func (b byNID) Len() int           { return len(b) }
+func (b byNID) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
+func (b byNID) Less(i, j int) bool { return b[i].innov < b[j].innov }
