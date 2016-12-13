@@ -82,6 +82,14 @@ func (n *NodeGene) Copy() *NodeGene {
 	}
 }
 
+// ByNID implements sort.Interface for []*NodeGene based on
+// the nodes' NIDs.
+type ByNID []*NodeGene
+
+func (b ByNID) Len() int           { return len(b) }
+func (b ByNID) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
+func (b ByNID) Less(i, j int) bool { return b[i].nid < b[j].nid }
+
 // ConnGene is an implementation of each connection within a genome.
 // It represents a connection between an in-node and an out-node;
 // it contains an innovation number and nids of the in-node and the
@@ -155,3 +163,11 @@ func (c *ConnGene) mutate(mutWeightRate float64) {
 func (c *ConnGene) switchConn() {
 	c.disabled = !c.disabled
 }
+
+// ByInnov implements sort.Interface for []*ConnGene based on
+// the connections' innovation numbers.
+type ByInnov []*ConnGene
+
+func (b ByNID) Len() int           { return len(b) }
+func (b ByNID) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
+func (b ByNID) Less(i, j int) bool { return b[i].innov < b[j].innov }
