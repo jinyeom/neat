@@ -36,6 +36,7 @@ for the Go code in this page.
 package neat
 
 import (
+	"math"
 	"math/rand"
 	"sort"
 )
@@ -125,7 +126,7 @@ func (g *Genome) Conns() []*ConnGene {
 // Node returns a node gene with the argument nid; returns nil if
 // a node with the nid doesn't exist.
 func (g *Genome) Node(nid int) *NodeGene {
-	i := sort.Search(len(g.nodes), func(int i) bool {
+	i := sort.Search(len(g.nodes), func(i int) bool {
 		return g.nodes[i].nid == nid
 	})
 
@@ -139,7 +140,7 @@ func (g *Genome) Node(nid int) *NodeGene {
 // number; returns nil if a connection with the innovation number
 // doesn't exist.
 func (g *Genome) Conn(innov int) *ConnGene {
-	i := sort.Search(len(g.conns), func(int i) bool {
+	i := sort.Search(len(g.conns), func(i int) bool {
 		return g.conns[i].innov == innov
 	})
 
@@ -179,8 +180,6 @@ func (g *Genome) Copy() *Genome {
 // and the argument genome. The compatibility distance is a measurement
 // of two genomes' compatibility for speciating them.
 func (g *Genome) Compatibility(g1 *Genome) float64 {
-	distance := 0.0
-
 	numDisjoint := 0     // number of disjoint genes
 	numExcess := 0       // number of excess genes
 	numMatch := 0        // number of matching genes
@@ -188,17 +187,20 @@ func (g *Genome) Compatibility(g1 *Genome) float64 {
 
 	small := g  // genome with smaller number of connections
 	large := g1 // genome with larger number of connections
-	if len(small.conns) > len(large.conns) {
-		small, large = large, small
-	}
 
 	// sort connections by innovation numbers
 	sort.Sort(byInnov(small.conns))
-	sort.Sort(byInnov(large.connss))
+	sort.Sort(byInnov(large.conns))
+
+	maxSmallInnov := small.conns[len(small.conns)].innov
+	maxLargeInnov := large.conns[len(large.conns)].innov
+
+	if maxSmallInnov > maxLargeInnov {
+		small, large = large, small
+	}
 
 	// try innovation numbers from 0 to the small genome's largest
 	// innovation numbers to count the number of disjoint genes
-	maxSmallInnov := small.conns[len(small.conns)]
 	for i := 0; i <= maxSmallInnov; i++ {
 		sc := small.Conn(i)
 		lc := large.Conn(i)
@@ -211,22 +213,22 @@ func (g *Genome) Compatibility(g1 *Genome) float64 {
 		}
 	}
 
+	// get average difference if the number of matching genes is
+	// larger than 0
+	if numMatch != 0 {
+		avgWeightDiff /= float64(numMatch)
+	}
+
 	// count excess genes
-	maxLargeInnov := large.conns[len(large.conns)]
 	for i := maxSmallInnov + 1; i < maxLargeInnov; i++ {
 		if large.Conn(i) != nil {
 			numExcess++
 		}
 	}
 
-	// get average difference if the number of matching genes is
-	// larger than 0
-	if numMatch != 0 {
-		avgWeightDiff /= numMatch
-	}
-
-	return (g.param.CoeffExcess*numExcess)/n +
-		(g.param.CoeffDisjoint*numDisjoint)/n +
+	n := float64(len(large.conns))
+	return (g.param.CoeffExcess*float64(numExcess))/n +
+		(g.param.CoeffDisjoint*float64(numDisjoint))/n +
 		(g.param.CoeffWeight * avgWeightDiff)
 }
 
