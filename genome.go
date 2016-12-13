@@ -181,9 +181,10 @@ func (g *Genome) Copy() *Genome {
 func (g *Genome) Compatibility(g1 *Genome) float64 {
 	distance := 0.0
 
-	d := 0   // number of disjoint genes
-	e := 0   // number of excess genes
-	w := 0.0 // average weight differences of matching genes
+	numDisjoint := 0     // number of disjoint genes
+	numExcess := 0       // number of excess genes
+	numMatch := 0        // number of matching genes
+	avgWeightDiff := 0.0 // average weight differences of matching genes
 
 	small := g  // genome with smaller number of connections
 	large := g1 // genome with larger number of connections
@@ -191,9 +192,42 @@ func (g *Genome) Compatibility(g1 *Genome) float64 {
 		small, large = large, small
 	}
 
-	return (g.param.CoeffExcess*e)/n +
-		(g.param.CoeffDisjoint*d)/n +
-		(g.param.CoeffWeight * w)
+	// sort connections by innovation numbers
+	sort.Sort(byInnov(small.conns))
+	sort.Sort(byInnov(large.connss))
+
+	// try innovation numbers from 0 to the small genome's largest
+	// innovation numbers to count the number of disjoint genes
+	maxSmallInnov := small.conns[len(small.conns)]
+	for i := 0; i <= maxSmallInnov; i++ {
+		sc := small.Conn(i)
+		lc := large.Conn(i)
+		switch {
+		case sc != nil && lc != nil:
+			avgWeightDiff += math.Abs(sc.weight - lc.weight)
+			numMatch++
+		case (sc != nil && lc == nil) || (sc == nil && lc != nil):
+			numDisjoint++
+		}
+	}
+
+	// count excess genes
+	maxLargeInnov := large.conns[len(large.conns)]
+	for i := maxSmallInnov + 1; i < maxLargeInnov; i++ {
+		if large.Conn(i) != nil {
+			numExcess++
+		}
+	}
+
+	// get average difference if the number of matching genes is
+	// larger than 0
+	if numMatch != 0 {
+		avgWeightDiff /= numMatch
+	}
+
+	return (g.param.CoeffExcess*numExcess)/n +
+		(g.param.CoeffDisjoint*numDisjoint)/n +
+		(g.param.CoeffWeight * avgWeightDiff)
 }
 
 // Crossover returns a child genome created by crossover operation
