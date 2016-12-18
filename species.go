@@ -40,6 +40,7 @@ package neat
 // within a population.
 type Species struct {
 	sid     int       // species ID
+	age     int       // species age
 	genomes []*Genome // genomes in this species
 }
 
@@ -48,6 +49,7 @@ type Species struct {
 func NewSpecies(sid int, g *Genome) *Species {
 	return &Species{
 		sid:     sid,
+		age:     0,
 		genomes: []*Genome{g},
 	}
 }
@@ -57,12 +59,45 @@ func (s *Species) SID() int {
 	return s.sid
 }
 
+// Age returns this species' age.
+func (s *Species) Age() int {
+	return s.age
+}
+
 // Genomes returns this species' member genomes.
 func (s *Species) Genomes() []*Genome {
 	return s.genomes
 }
 
 // AddGenome adds a new genome to this species.
-func (s *Speices) AddGenome(g *Genome) {
-	s.genome = append(s.genome, g)
+func (s *Species) AddGenome(g *Genome) {
+	s.genomes = append(s.genomes, g)
+}
+
+// sh implements a part of the explicit fitness sharing function, sh.
+// If a compatibility distance 'd' is larger than the compatibility
+// threshold 'dt', return 0; otherwise, return 1.
+func sh(d, dt float64) float64 {
+	if d > dt {
+		return 0.0
+	}
+	return 1.0
+}
+
+// FitnessShare computes and assigns the shared fitness of genomes in
+// this species, via explicit fitness sharing.
+func (s *Species) FitnessShare(dt float64) {
+	adjusted := make(map[int]float64)
+	for _, g0 := range s.genome {
+		adjustment := 0.0
+		for _, g1 := range s.genome {
+			adjustment += sh(g0.Compatibility(g1), dt)
+		}
+		if adjustment != 0.0 {
+			adjusted[g0.gid] = g0.fitness / adjustment
+		}
+	}
+	for i := range s.genome {
+		s.genome[i].fitness = adjusted[s.genome[i].gid]
+	}
 }

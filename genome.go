@@ -57,9 +57,8 @@ type Genome struct {
 	fitness float64 // fitness value of the genome
 }
 
-// NewGenome creates a new genome in its initial state; it only creates
-// sensor nodes and output nodes with no connections. Connections are
-// expected to be added via mutations as evolution progresses.
+// NewGenome creates a new genome in its initial state with only fully-connected
+// sensor nodes and output nodes, and no hidden nodes.
 func NewGenome(gid int, param *Param) *Genome {
 	// initial number of nodes and connections
 	numNodes := param.NumSensors + param.NumOutputs
@@ -192,8 +191,8 @@ func (g *Genome) Compatibility(g1 *Genome) float64 {
 	sort.Sort(byInnov(small.conns))
 	sort.Sort(byInnov(large.conns))
 
-	maxSmallInnov := small.conns[len(small.conns)].innov
-	maxLargeInnov := large.conns[len(large.conns)].innov
+	maxSmallInnov := small.conns[len(small.conns)-1].innov
+	maxLargeInnov := large.conns[len(large.conns)-1].innov
 
 	if maxSmallInnov > maxLargeInnov {
 		small, large = large, small
@@ -231,12 +230,56 @@ func (g *Genome) Compatibility(g1 *Genome) float64 {
 }
 
 // Crossover returns a child genome created by crossover operation
-// between this genome and other genome provided as an argument.
-func Crossover(g0, g1 *Genome) *Genome {
+// between this genome and other genome provided as an argument; since
+// the two parent genomes have to be in the same species, it is assumed
+// that the child's species id is the same as one of the two parents'
+// (g0 in this implementation).
+func Crossover(g0, g1 *Genome, gid int) *Genome {
+	child := &Genome{
+		gid:     gid,
+		sid:     g0,
+		param:   param,
+		nodes:   nodes,
+		conns:   conns,
+		fitness: 0.0,
+	}
 
-	// to be implemented
+	small := g  // genome with smaller max innov
+	large := g1 // genome with larger max innov
 
-	return &Genome{}
+	// sort connections by innovation numbers
+	sort.Sort(byInnov(small.conns))
+	sort.Sort(byInnov(large.conns))
+
+	maxSmallInnov := small.conns[len(small.conns)-1].innov
+	maxLargeInnov := large.conns[len(large.conns)-1].innov
+
+	if maxSmallInnov > maxLargeInnov {
+		small, large = large, small
+	}
+
+	for i := 0; i <= maxSmallInnov; i++ {
+		sc := small.Conn(i)
+		lc := large.Conn(i)
+		if sc != nil && lc != nil {
+
+			// handle matching genes
+
+		} else if (sc != nil && lc == nil) || (sc == nil && lc != nil) {
+
+			// handle disjoint genes
+
+		}
+	}
+
+	// handle excess genes
+	for i := maxSmallInnov + 1; i < maxLargeInnov; i++ {
+		if large.Conn(i) != nil {
+			numExcess++
+		}
+	}
+
+	return child
 }
 
 // Mutate mutates the genome by adding a node, adding a connection,
