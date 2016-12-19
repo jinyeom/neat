@@ -88,16 +88,16 @@ func sh(d, dt float64) float64 {
 // this species, via explicit fitness sharing.
 func (s *Species) FitnessShare(dt float64) {
 	adjusted := make(map[int]float64)
-	for _, g0 := range s.genome {
+	for _, g0 := range s.genomes {
 		adjustment := 0.0
-		for _, g1 := range s.genome {
+		for _, g1 := range s.genomes {
 			adjustment += sh(g0.Compatibility(g1), dt)
 		}
 		if adjustment != 0.0 {
 			adjusted[g0.gid] = g0.fitness / adjustment
 		}
 	}
-	for i := range s.genome {
-		s.genome[i].fitness = adjusted[s.genome[i].gid]
+	for i := range s.genomes {
+		s.genomes[i].fitness = adjusted[s.genomes[i].gid]
 	}
 }

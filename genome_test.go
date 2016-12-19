@@ -28,13 +28,12 @@ func genomeStatus(g *Genome) {
 	}
 	fmt.Printf("Current innovation number: %d\n", globalInnovNum)
 	fmt.Println()
-
 }
 
 func TestGenome(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 
-	p := &Param{
+	param = &Param{
 		NumSensors:     3,
 		NumOutputs:     2,
 		PopulationSize: 1,
@@ -48,7 +47,7 @@ func TestGenome(t *testing.T) {
 
 	// Test creating a new genome
 	fmt.Printf("=== Creating a Genome ===\n")
-	g := NewGenome(0, p)
+	g := NewGenome(0)
 	genomeStatus(g)
 
 	// Test mutation by adding a new connection
@@ -69,9 +68,20 @@ func TestGenome(t *testing.T) {
 
 	// Test compatibility
 	fmt.Printf("=== Compatibility distance test ===\n")
-	g0 := NewGenome(1, p)
-	g1 := NewGenome(2, p)
+	g0 := NewGenome(1)
+	g1 := NewGenome(2)
 	genomeStatus(g0)
 	genomeStatus(g1)
 	fmt.Printf("Compatibility of g0 and g1: %f\n", g0.Compatibility(g1))
+
+	// Test crossover
+	fmt.Printf("=== Crossover test ===\n")
+	for i := 0; i < 10; i++ {
+		g0.Mutate()
+		g1.Mutate()
+	}
+	genomeStatus(g0)
+	genomeStatus(g1)
+	child := Crossover(g0, g1, 3)
+	genomeStatus(child)
 }

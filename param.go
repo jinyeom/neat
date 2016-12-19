@@ -58,6 +58,7 @@ type Param struct {
 	NumOutputs int // number of outputs
 
 	PopulationSize int // population size
+	NumGeneration  int // number of generations
 
 	// Crossover and Mutation rates
 	CrossoverRate  float64 // crossover rate
@@ -80,6 +81,7 @@ type Param struct {
 //  NumSensors 5
 //  NumOutputs 3
 //  PopulationSize 50
+//  NumGeneration 50
 //  CrossoverRate 0.1
 //  MutAddNodeRate 0.1
 //  MutAddConnRate 0.1

@@ -49,8 +49,6 @@ type Genome struct {
 	gid int // genome ID
 	sid int // species ID
 
-	param *Param // parameters of NEAT
-
 	nodes []*NodeGene // collection of node genes
 	conns []*ConnGene // collection of connection genes
 
@@ -59,7 +57,7 @@ type Genome struct {
 
 // NewGenome creates a new genome in its initial state with only fully-connected
 // sensor nodes and output nodes, and no hidden nodes.
-func NewGenome(gid int, param *Param) *Genome {
+func NewGenome(gid int) *Genome {
 	// initial number of nodes and connections
 	numNodes := param.NumSensors + param.NumOutputs
 	numConns := param.NumSensors * param.NumOutputs
@@ -90,7 +88,6 @@ func NewGenome(gid int, param *Param) *Genome {
 	return &Genome{
 		gid:     gid,
 		sid:     0,
-		param:   param,
 		nodes:   nodes,
 		conns:   conns,
 		fitness: 0.0,
@@ -107,11 +104,6 @@ func (g *Genome) SID() int {
 	return g.sid
 }
 
-// NumHiddenNodes returns the number of hidden nodes in the genome.
-func (g *Genome) NumHiddenNodes() int {
-	return len(g.nodes) - (g.param.NumSensors + g.param.NumOutputs)
-}
-
 // Nodes returns all nodes in the genome.
 func (g *Genome) Nodes() []*NodeGene {
 	return g.nodes
@@ -126,7 +118,7 @@ func (g *Genome) Conns() []*ConnGene {
 // a node with the nid doesn't exist.
 func (g *Genome) Node(nid int) *NodeGene {
 	i := sort.Search(len(g.nodes), func(i int) bool {
-		return g.nodes[i].nid == nid
+		return g.nodes[i].nid >= nid
 	})
 
 	if i < len(g.nodes) && g.nodes[i].nid == nid {
@@ -140,39 +132,13 @@ func (g *Genome) Node(nid int) *NodeGene {
 // doesn't exist.
 func (g *Genome) Conn(innov int) *ConnGene {
 	i := sort.Search(len(g.conns), func(i int) bool {
-		return g.conns[i].innov == innov
+		return g.conns[i].innov >= innov
 	})
 
 	if i < len(g.conns) && g.conns[i].innov == innov {
 		return g.conns[i]
 	}
 	return nil
-}
-
-// Copy returns a deep copy of this genome.
-func (g *Genome) Copy() *Genome {
-	return &Genome{
-		gid:   g.gid,
-		sid:   g.sid,
-		param: g.param,
-		// deep copy of nodes
-		nodes: func() []*NodeGene {
-			nodes := make([]*NodeGene, 0, len(g.nodes))
-			for _, node := range g.nodes {
-				nodes = append(nodes, node.Copy())
-			}
-			return nodes
-		}(),
-		// deep copy of connections
-		conns: func() []*ConnGene {
-			conns := make([]*ConnGene, 0, len(g.conns))
-			for _, conn := range g.conns {
-				conns = append(conns, conn.Copy())
-			}
-			return conns
-		}(),
-		fitness: g.fitness,
-	}
 }
 
 // Compatibility returns the compatibility distance between this genome
@@ -196,13 +162,15 @@ func (g *Genome) Compatibility(g1 *Genome) float64 {
 
 	if maxSmallInnov > maxLargeInnov {
 		small, large = large, small
+		maxSmallInnov, maxLargeInnov = maxLargeInnov, maxSmallInnov
 	}
 
-	// try innovation numbers from 0 to the small genome's largest
+	// try innovation numbers from 1 to the small genome's largest
 	// innovation numbers to count the number of disjoint genes
-	for i := 0; i <= maxSmallInnov; i++ {
+	for i := 1; i <= maxSmallInnov; i++ {
 		sc := small.Conn(i)
 		lc := large.Conn(i)
+
 		if sc != nil && lc != nil {
 			avgWeightDiff += math.Abs(sc.weight - lc.weight)
 			numMatch++
@@ -218,15 +186,15 @@ func (g *Genome) Compatibility(g1 *Genome) float64 {
 	}
 
 	// count excess genes
-	for i := maxSmallInnov + 1; i < maxLargeInnov; i++ {
+	for i := maxSmallInnov + 1; i <= maxLargeInnov; i++ {
 		if large.Conn(i) != nil {
 			numExcess++
 		}
 	}
 
-	return (g.param.CoeffExcess * float64(numExcess)) +
-		(g.param.CoeffDisjoint * float64(numDisjoint)) +
-		(g.param.CoeffWeight * avgWeightDiff)
+	return (param.CoeffExcess * float64(numExcess)) +
+		(param.CoeffDisjoint * float64(numDisjoint)) +
+		(param.CoeffWeight * avgWeightDiff)
 }
 
 // Crossover returns a child genome created by crossover operation
@@ -237,14 +205,13 @@ func (g *Genome) Compatibility(g1 *Genome) float64 {
 func Crossover(g0, g1 *Genome, gid int) *Genome {
 	child := &Genome{
 		gid:     gid,
-		sid:     g0,
-		param:   param,
-		nodes:   nodes,
-		conns:   conns,
+		sid:     g0.sid,
+		nodes:   make([]*NodeGene, 0, len(g0.nodes)),
+		conns:   make([]*ConnGene, 0, len(g0.conns)),
 		fitness: 0.0,
 	}
 
-	small := g  // genome with smaller max innov
+	small := g0 // genome with smaller max innov
 	large := g1 // genome with larger max innov
 
 	// sort connections by innovation numbers
@@ -256,30 +223,51 @@ func Crossover(g0, g1 *Genome, gid int) *Genome {
 
 	if maxSmallInnov > maxLargeInnov {
 		small, large = large, small
+		maxSmallInnov, maxLargeInnov = maxLargeInnov, maxSmallInnov
 	}
 
-	for i := 0; i <= maxSmallInnov; i++ {
+	for i := 1; i <= maxSmallInnov; i++ {
 		sc := small.Conn(i)
 		lc := large.Conn(i)
+
+		// matching/disjoint genes
 		if sc != nil && lc != nil {
-
-			// handle matching genes
-
-		} else if (sc != nil && lc == nil) || (sc == nil && lc != nil) {
-
-			// handle disjoint genes
-
+			if rand.Float64() < 0.5 {
+				child.copyConn(small, sc.Copy())
+			} else {
+				child.copyConn(large, lc.Copy())
+			}
+		} else if sc != nil && lc == nil {
+			child.copyConn(small, sc.Copy())
+		} else if sc == nil && lc != nil {
+			child.copyConn(large, lc.Copy())
 		}
 	}
 
-	// handle excess genes
-	for i := maxSmallInnov + 1; i < maxLargeInnov; i++ {
-		if large.Conn(i) != nil {
-			numExcess++
+	// excess genes
+	for i := maxSmallInnov + 1; i <= maxLargeInnov; i++ {
+		lc := large.Conn(i)
+		if lc != nil {
+			child.copyConn(large, lc)
 		}
 	}
 
 	return child
+}
+
+// copyConn is a helper function of Crossover which copies a connection from
+// other genome to this genome, and nodes that are connected by this
+// connection, accordingly.
+func (g *Genome) copyConn(g0 *Genome, c *ConnGene) {
+	if g.Conn(c.innov) == nil {
+		g.conns = append(g.conns, c)
+	}
+	if g.Node(c.in) == nil {
+		g.nodes = append(g.nodes, g0.Node(c.in).Copy())
+	}
+	if g.Node(c.out) == nil {
+		g.nodes = append(g.nodes, g0.Node(c.out).Copy())
+	}
 }
 
 // Mutate mutates the genome by adding a node, adding a connection,
@@ -287,16 +275,16 @@ func Crossover(g0, g1 *Genome, gid int) *Genome {
 func (g *Genome) Mutate() {
 	// mutation by adding a new node; available only if there is at
 	// least one connection in the genome.
-	if rand.Float64() < g.param.MutAddNodeRate {
+	if rand.Float64() < param.MutAddNodeRate {
 		g.mutateAddNode()
 	}
 	// mutation by adding a new connection.
-	if rand.Float64() < g.param.MutAddConnRate {
+	if rand.Float64() < param.MutAddConnRate {
 		g.mutateAddConn()
 	}
 	// mutate connections
 	for i := range g.conns {
-		g.conns[i].mutate(g.param.MutWeightRate)
+		g.conns[i].mutate(param.MutWeightRate)
 	}
 }
 
@@ -357,7 +345,7 @@ func (g *Genome) mutateAddConn() {
 
 	// The out-node can only be randomly selected from nodes that are
 	// not sensor nodes.
-	out := rand.Intn(len(g.nodes[g.param.NumSensors:])) + g.param.NumSensors
+	out := rand.Intn(len(g.nodes[param.NumSensors:])) + param.NumSensors
 
 	// Search for a connection gene that has the same in-node and out-node.
 	for _, conn := range g.conns {

@@ -37,8 +37,9 @@ package neat
 
 var (
 	// globalInnovNum is a global variable that keeps track of
-	// the chronology of the evolution; it is initialized as 1,
-	// since 0 is reserved for innovation map's zero value.
+	// the chronology of the evolution via historical marking;
+	// it is initialized as 1, since 0 is reserved for innovation
+	// map's zero value.
 	globalInnovNum = 1
 
 	// innovations is a global list of structural innovation of newly added
@@ -46,19 +47,23 @@ var (
 	// maps IDs of nodes that are connected due to mutations to innovation
 	// numbers of connections that connect them.
 	innovations = make(map[[2]int]int)
+
+	// param is a global parameter that can only be manipulated internally;
+	// it is initialized as nil pointer and needs to be initialized in the
+	// before creating a new NEAT struct.
+	param *Param
 )
 
 // NEAT is an implementation of NeuroEvolution of Augmenting
 // Topologies; it includes
 type NEAT struct {
-	param      *Param          // NEAT parameters
 	evalFunc   *EvaluationFunc // evaluation function
 	population []*Genome       // population of genomes
 	species    []*Species      // ordered list of species
 }
 
 // New creates NEAT and initializes its environment given a set of parameters.
-func New(param *Param, evalFunc *EvaluationFunc) (*NEAT, error) {
+func New(evalFunc *EvaluationFunc) (*NEAT, error) {
 	// check if parameter is valid
 	if err := param.IsValid(); err != nil {
 		return nil, err
@@ -67,14 +72,13 @@ func New(param *Param, evalFunc *EvaluationFunc) (*NEAT, error) {
 	// initialize population
 	population := make([]*Genome, param.PopulationSize)
 	for i := range population {
-		population[i] = NewGenome(i, param)
+		population[i] = NewGenome(i)
 	}
 
 	// initialize slice of species with one species
 	species := []*Species{NewSpecies(0, population[0])}
 
 	return &NEAT{
-		param:      param,
 		evalFunc:   evalFunc,
 		population: population,
 		species:    species,
@@ -82,6 +86,8 @@ func New(param *Param, evalFunc *EvaluationFunc) (*NEAT, error) {
 }
 
 // Run executes NEAT algorithm.
-func (n *NEAT) Run() {
+func (n *NEAT) Run(verbose bool) {
+	for i := 0; i < param.NumGeneration; i++ {
 
+	}
 }
