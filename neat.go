@@ -99,16 +99,16 @@ func sh(d float64) float64 {
 // via explicit fitness sharing.
 func (n *NEAT) FitnessShare() {
 	adjusted := make(map[int]float64)
-	for _, g0 := range s.genomes {
+	for _, g0 := range n.population {
 		adjustment := 0.0
-		for _, g1 := range s.genomes {
+		for _, g1 := range n.population {
 			adjustment += sh(g0.Compatibility(g1))
 		}
 		if adjustment != 0.0 {
 			adjusted[g0.gid] = g0.fitness / adjustment
 		}
 	}
-	for i := range s.genomes {
+	for i := range n.population {
 		n.population[i].fitness = adjusted[n.population[i].gid]
 	}
 }
@@ -116,6 +116,14 @@ func (n *NEAT) FitnessShare() {
 // Run executes NEAT algorithm.
 func (n *NEAT) Run(verbose bool) {
 	for i := 0; i < param.NumGeneration; i++ {
+		// evaluate
 
+		// genome loop
+
+		// species loop
+
+		// mutate
+
+		// crossover
 	}
 }
