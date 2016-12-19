@@ -73,31 +73,3 @@ func (s *Species) Genomes() []*Genome {
 func (s *Species) AddGenome(g *Genome) {
 	s.genomes = append(s.genomes, g)
 }
-
-// sh implements a part of the explicit fitness sharing function, sh.
-// If a compatibility distance 'd' is larger than the compatibility
-// threshold 'dt', return 0; otherwise, return 1.
-func sh(d, dt float64) float64 {
-	if d > dt {
-		return 0.0
-	}
-	return 1.0
-}
-
-// FitnessShare computes and assigns the shared fitness of genomes in
-// this species, via explicit fitness sharing.
-func (s *Species) FitnessShare(dt float64) {
-	adjusted := make(map[int]float64)
-	for _, g0 := range s.genomes {
-		adjustment := 0.0
-		for _, g1 := range s.genomes {
-			adjustment += sh(g0.Compatibility(g1), dt)
-		}
-		if adjustment != 0.0 {
-			adjusted[g0.gid] = g0.fitness / adjustment
-		}
-	}
-	for i := range s.genomes {
-		s.genomes[i].fitness = adjusted[s.genomes[i].gid]
-	}
-}

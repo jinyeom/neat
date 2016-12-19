@@ -57,8 +57,9 @@ type Param struct {
 	NumSensors int // number of sensors
 	NumOutputs int // number of outputs
 
-	PopulationSize int // population size
-	NumGeneration  int // number of generations
+	PopulationSize int     // population size
+	NumGeneration  int     // number of generations
+	DistThreshold  float64 // compatibility distance threshold
 
 	// Crossover and Mutation rates
 	CrossoverRate  float64 // crossover rate
@@ -82,6 +83,7 @@ type Param struct {
 //  NumOutputs 3
 //  PopulationSize 50
 //  NumGeneration 50
+//  DistThreshold 1.0
 //  CrossoverRate 0.1
 //  MutAddNodeRate 0.1
 //  MutAddConnRate 0.1
@@ -116,48 +118,70 @@ func NewParam(filename string) (*Param, error) {
 				return nil, err
 			}
 			param.NumSensors = numSensors
+
 		case "NumOutputs":
 			numOutputs, err := strconv.Atoi(parsed[1])
 			if err != nil {
 				return nil, err
 			}
 			param.NumOutputs = numOutputs
+
 		case "PopulationSize":
 			populationSize, err := strconv.Atoi(parsed[1])
 			if err != nil {
 				return nil, err
 			}
 			param.PopulationSize = populationSize
+
+		case "NumGeneration":
+			numGeneration, err := strconv.Atoi(parsed[1])
+			if err != nil {
+				return nil, err
+			}
+			param.NumGeneration = numGeneration
+
+		case "DistThreshold":
+			distThreshold, err := strconv.ParseFloat(parsed[1], 64)
+			if err != nil {
+				return nil, err
+			}
+			param.DistThreshold = distThreshold
+
 		case "MutAddNodeRate":
 			mutAddNodeRate, err := strconv.ParseFloat(parsed[1], 64)
 			if err != nil {
 				return nil, err
 			}
 			param.MutAddNodeRate = mutAddNodeRate
+
 		case "MutAddConnRate":
 			mutAddConnRate, err := strconv.ParseFloat(parsed[1], 64)
 			if err != nil {
 				return nil, err
 			}
 			param.MutAddConnRate = mutAddConnRate
+
 		case "MutWeightRate":
 			mutWeightRate, err := strconv.ParseFloat(parsed[1], 64)
 			if err != nil {
 				return nil, err
 			}
 			param.MutWeightRate = mutWeightRate
+
 		case "CoeffExcess":
 			coeffExcess, err := strconv.ParseFloat(parsed[1], 64)
 			if err != nil {
 				return nil, err
 			}
 			param.CoeffExcess = coeffExcess
+
 		case "CoeffDisjoint":
 			coeffDisjoint, err := strconv.ParseFloat(parsed[1], 64)
 			if err != nil {
 				return nil, err
 			}
 			param.CoeffDisjoint = coeffDisjoint
+
 		case "CoeffWeight":
 			coeffWeight, err := strconv.ParseFloat(parsed[1], 64)
 			if err != nil {
