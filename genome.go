@@ -233,14 +233,14 @@ func Crossover(g0, g1 *Genome, gid int) *Genome {
 		// matching/disjoint genes
 		if sc != nil && lc != nil {
 			if rand.Float64() < 0.5 {
-				child.copyConn(small, sc.Copy())
+				child.copyConn(small, sc)
 			} else {
-				child.copyConn(large, lc.Copy())
+				child.copyConn(large, lc)
 			}
 		} else if sc != nil && lc == nil {
-			child.copyConn(small, sc.Copy())
+			child.copyConn(small, sc)
 		} else if sc == nil && lc != nil {
-			child.copyConn(large, lc.Copy())
+			child.copyConn(large, lc)
 		}
 	}
 
@@ -263,11 +263,13 @@ func (g *Genome) copyConn(g0 *Genome, c *ConnGene) {
 		g.conns = append(g.conns, c)
 	}
 	if g.Node(c.in) == nil {
-		g.nodes = append(g.nodes, g0.Node(c.in).Copy())
+		g.nodes = append(g.nodes, g0.Node(c.in))
 	}
 	if g.Node(c.out) == nil {
-		g.nodes = append(g.nodes, g0.Node(c.out).Copy())
+		g.nodes = append(g.nodes, g0.Node(c.out))
 	}
+	sort.Sort(byNID(g.nodes))
+	sort.Sort(byInnov(g.conns))
 }
 
 // Mutate mutates the genome by adding a node, adding a connection,
