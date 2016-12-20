@@ -33,7 +33,7 @@ for the Go code in this page.
 
 */
 
-package neat
+package cppn
 
 import (
 	"math"
