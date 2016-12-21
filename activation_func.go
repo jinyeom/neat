@@ -89,6 +89,14 @@ type ActivationFunc struct {
 	fn   func(x float64) float64 // activation function
 }
 
+// NewActivationFunc creates a new custom activation function.
+func NewActivationFunc(name string, fn func(x float64) float64) *ActivationFunc {
+	return &ActivationFunc{
+		name: name,
+		fn:   fn,
+	}
+}
+
 // Identity returns the identity function as an activation
 // function. This function is only used for sensor nodes.
 func Identity() *ActivationFunc {
