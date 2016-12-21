@@ -1,7 +1,7 @@
 /*
 
 
-phenotype.go implementation of phenotype interface.
+network.go implementation of phenotype interface.
 
 @licstart   The following is the entire license notice for
 the Go code in this page.
@@ -35,13 +35,6 @@ for the Go code in this page.
 
 package neat
 
-// Phenotype is an interface of
-type Phenotype interface {
-	// ForwardPropagate takes inputs, propagates signals and returns
-	// output in a slice of float64.
-	ForwardPropagate(input []float64) []float64
-}
-
 // Node implements a node in a phenotype network; it includes a node ID,
 // its activation function, and a signal value that the node holds.
 type Node struct {
@@ -74,13 +67,14 @@ func (n *Node) Output() float64 {
 	return n.signal
 }
 
-// NN implements Phenotype interface as a neural network.
-type NN struct {
-	neurons []*Node
+// Network is the phenotype in NEAT, which decodes from a genome.
+// A network can be used as a neural network, CPPN, etc.
+type Network struct {
+	nodes []*Node
 }
 
-// NewNN decodes a genome into a neural network (phenotype).
-func NewNN(g *Genome) *NN {
+// NewNetwork decodes a genome into a network (phenotype).
+func NewNetwork(g *Genome) *Network {
 	nodes := make([]*Node, len(g.nodes))
 	for i := range g.nodes {
 		nodes[i] = NewNode(g.nodes[i])
@@ -93,13 +87,13 @@ func NewNN(g *Genome) *NN {
 		}
 	}
 
-	return &NN{
-		neurons: nodes,
+	return &Network{
+		nodes: nodes,
 	}
 }
 
 // ForwardPropagate
-func (n *NN) ForwardPropagate(intput []float64) []float64 {
+func (n *Network) ForwardPropagate(intput []float64) []float64 {
 
 	// to be implemented
 

@@ -90,13 +90,13 @@ func Init(p *Param, a ActivationSet) error {
 // NEAT is an implementation of NeuroEvolution of Augmenting
 // Topologies; it includes
 type NEAT struct {
-	evalFunc   *EvaluationFunc // evaluation function
-	population []*Genome       // population of genomes
-	species    []*Species      // ordered list of species
+	evalFunc   EvaluationFunc // evaluation function
+	population []*Genome      // population of genomes
+	species    []*Species     // ordered list of species
 }
 
 // New creates NEAT and initializes its environment given a set of parameters.
-func New(evalFunc *EvaluationFunc) (*NEAT, error) {
+func New(evalFunc EvaluationFunc) (*NEAT, error) {
 	if !initPass {
 		return nil, errors.New("initializing check failed")
 	}
