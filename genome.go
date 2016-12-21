@@ -114,6 +114,16 @@ func (g *Genome) Conns() []*ConnGene {
 	return g.conns
 }
 
+// Fitness returns this genome's fitness value.
+func (g *Genome) Fitness() float64 {
+	return g.fitness
+}
+
+// SetFitness sets a fitness value to this genome.
+func (g *Genome) SetFitness(score float64) {
+	g.fitness = score
+}
+
 // Node returns a node gene with the argument nid; returns nil if
 // a node with the nid doesn't exist.
 func (g *Genome) Node(nid int) *NodeGene {
@@ -369,4 +379,9 @@ func (g *Genome) mutateAddConn() {
 		globalInnovNum++
 	}
 	g.conns = append(g.conns, NewConnGene(innov, in, out, rand.NormFloat64()))
+}
+
+// Decode decodes this genome and return its phenotype network.
+func (g *Genome) Decode() *Network {
+	return NewNetwork(g)
 }

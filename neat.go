@@ -37,6 +37,8 @@ package neat
 
 import (
 	"errors"
+	"runtime"
+	"sync"
 )
 
 var (
@@ -148,7 +150,55 @@ func (n *NEAT) FitnessShare() {
 // Run executes NEAT algorithm.
 func (n *NEAT) Run(verbose bool) {
 	for i := 0; i < param.NumGeneration; i++ {
-		// evaluate
+		for i := range n.population {
+			network := n.population[i].Decode()
+			n.population[i].SetFitness(n.evalFunc(network))
+		}
+
+		// genome loop
+
+		// species loop
+
+		// mutate
+
+		// crossover
+	}
+}
+
+// RunParallel executes NEAT algorithm in parallel by separating the
+// evaluation of individuals in a population into different processor.
+func (n *NEAT) RunParallel(verbose bool, procs int) {
+	runtime.GOMAXPROCS(procs)
+
+	var wg sync.WaitGroup
+	wg.Add(procs)
+
+	for i := 0; i < param.NumGeneration; i++ {
+		// number of evaluations per processor
+		numEval := param.PopulationSize / procs
+
+		iter := 0       // iterator
+		next := numEval // next iteration
+		for p := 0; p < procs; p++ {
+			go func() {
+				defer wg.Done()
+
+				// handle leftover genomes
+				if next > param.PopulationSize {
+					next = param.PopulationSize
+				}
+
+				// iterate through this group of genomes
+				for iter < next {
+					network := n.population[iter].Decode()
+					n.population[iter].SetFitness(n.evalFunc(network))
+					iter++
+				}
+			}()
+
+			iter = next
+			next += numEval
+		}
 
 		// genome loop
 

@@ -43,7 +43,7 @@ func TestGenome(t *testing.T) {
 		CoeffExcess:    0.3,
 		CoeffDisjoint:  0.3,
 		CoeffWeight:    0.3,
-	}, CPPNSet())
+	}, NEATSet())
 
 	// Test creating a new genome
 	fmt.Printf("=== Creating a Genome ===\n")
