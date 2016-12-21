@@ -35,17 +35,19 @@ for the Go code in this page.
 
 package neat
 
-// CompareFunc is a type of function that returns -1, 0, or 1,
+// compareFunc is a type of function that returns -1, 0, or 1,
 // by comparing the two argument genomes' fitnesses: if the first
 // argument genome has better fitness, return -1; return 0 if the
 // two genomes have the same fitness; and 1, if the second genome
-// has better fitness.
-type CompareFunc func(g0, g1 *Genome) int
+// has better fitness. This function type is not available
+// externally; the only ways to aqcuire a comparison function are via
+// DirectCompare() and InverseCompare().
+type compareFunc func(g0, g1 *Genome) int
 
 // DirectCompare returns a comparison function in which a genome's
 // fitness value and its evolutionary advantage are directly related.
 // In other words, the higher a fitness value, the better.
-func DirectCompare() CompareFunc {
+func DirectCompare() compareFunc {
 	return func(g0, g1 *Genome) int {
 		if g0.fitness > g1.fitness {
 			return 1
@@ -60,7 +62,7 @@ func DirectCompare() CompareFunc {
 // InverseCompare returns a comparison function in which a genome's
 // fitness value and its evolutionary advantage are inversely related.
 // In other words, the lower a fitness value, the better.
-func InverseCompare() CompareFunc {
+func InverseCompare() compareFunc {
 	return func(g0, g1 *Genome) int {
 		if g0.fitness < g1.fitness {
 			return 1
