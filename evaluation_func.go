@@ -35,6 +35,6 @@ for the Go code in this page.
 
 package neat
 
-// EvaluationFunc is a type of function that evaluates a phenotype
+// EvaluationFunc is a type of function that evaluates a network
 // and returns a float64 number as a fitness score.
-type EvaluationFunc func(p Phenotype) float64
+type EvaluationFunc func(n *Network) float64
