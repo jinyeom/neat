@@ -102,7 +102,7 @@ func (n *NEAT) FitnessShare() {
 	for _, g0 := range n.population {
 		adjustment := 0.0
 		for _, g1 := range n.population {
-			adjustment += sh(g0.Compatibility(g1))
+			adjustment += sh(g0.Distance(g1))
 		}
 		if adjustment != 0.0 {
 			adjusted[g0.gid] = g0.fitness / adjustment

@@ -1,7 +1,7 @@
 /*
 
 
-select_func.go implementation of selection function type.
+compare_func.go implementation of comparison function type.
 
 @licstart   The following is the entire license notice for
 the Go code in this page.
@@ -35,51 +35,39 @@ for the Go code in this page.
 
 package neat
 
-import (
-	"math/rand"
-)
+// CompareFunc is a type of function that returns -1, 0, or 1,
+// by comparing the two argument genomes' fitnesses: if the first
+// argument genome has better fitness, return -1; return 0 if the
+// two genomes have the same fitness; and 1, if the second genome
+// has better fitness.
+type CompareFunc func(g0, g1 *Genome) int
 
-// SelectFunc is a type of function that selects a genome
-// from the argument pool of genomes, based on a fitness
-// comparison policy.
-type SelectFunc func(CompareFunc, []*Genome) *Genome
-
-// TSelect() returns a selection function that performs
-// Tournament Selection given a comparison function.
-func TSelect() SelectFunc {
-	return func(c CompareFunc, p []*Genome) *Genome {
-		popSize := len(p)
-		best := rand.Intn(popSize)
-		for i := 0; i < popSize; i++ {
-			next := rand.Intn(popSize)
-			if c(p[next], p[best]) == 1 {
-				best = next
-			}
+// DirectCompare returns a comparison function in which a genome's
+// fitness value and its evolutionary advantage are directly related.
+// In other words, the higher a fitness value, the better.
+func DirectCompare() CompareFunc {
+	return func(g0, g1 *Genome) int {
+		if g0.fitness > g1.fitness {
+			return 1
+		} else if g0.fitness == g1.fitness {
+			return 0
+		} else {
+			return -1
 		}
-		return p[best]
 	}
 }
 
-// FPSelect() returns a selection function that performs
-// Fitness-Proportionate Selection (not recommended).
-func FPSelect() SelectFunc {
-	return func(c CompareFunc, p []*Genome) *Genome {
-		popSize := len(p)
-		best := p[rand.Intn(popSize)]
-		bestScore := best.fitness
-		for i := 0; i < popSize; i++ {
-			if c(p[i], best) == 1 {
-				best = p[i]
-				bestScore = p[i].fitness
-			}
-		}
-		// stochastic acceptance
-		for {
-			i := rand.Intn(popSize)
-			r := p[i].fitness / bestScore
-			if rand.Float64() < r {
-				return p[i]
-			}
+// InverseCompare returns a comparison function in which a genome's
+// fitness value and its evolutionary advantage are inversely related.
+// In other words, the lower a fitness value, the better.
+func InverseCompare() CompareFunc {
+	return func(g0, g1 *Genome) int {
+		if g0.fitness < g1.fitness {
+			return 1
+		} else if g0.fitness == g1.fitness {
+			return 0
+		} else {
+			return -1
 		}
 	}
 }

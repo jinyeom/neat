@@ -61,18 +61,24 @@ func TestGenome(t *testing.T) {
 	fmt.Printf("Nodes after mutation:\n")
 	genomeStatus(g)
 
-	// Test overall mutation of a genome
-	fmt.Printf("Overall mutation\n")
-	g.Mutate()
+	// Test overall mutation of a genome (power test)
+	fmt.Printf("Overall mutation (power test)\n")
+	for i := 0; i < 20; i++ {
+		g.Mutate()
+	}
 	genomeStatus(g)
 
 	// Test compatibility
 	fmt.Printf("=== Compatibility distance test ===\n")
 	g0 := NewGenome(1)
 	g1 := NewGenome(2)
+	for i := 0; i < 5; i++ {
+		g0.Mutate()
+		g1.Mutate()
+	}
 	genomeStatus(g0)
 	genomeStatus(g1)
-	fmt.Printf("Compatibility of g0 and g1: %f\n", g0.Compatibility(g1))
+	fmt.Printf("Compatibility distance of g0 and g1: %f\n", g0.Distance(g1))
 
 	// Test crossover
 	fmt.Printf("=== Crossover test ===\n")

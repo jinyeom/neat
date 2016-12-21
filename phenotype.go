@@ -52,7 +52,7 @@ type Node struct {
 	afn       *ActivationFunc   // activation function
 }
 
-// NewNode encodes the arguement node gene, and creates a new node.
+// NewNode decodes the arguement node gene, and creates a new node.
 func NewNode(n *NodeGene) *Node {
 	return &Node{
 		nid:       n.nid,
@@ -67,7 +67,7 @@ func NewNode(n *NodeGene) *Node {
 // activates via its activation function.
 func (n *Node) Output() float64 {
 	sum := 0.0
-	for i, node := range n.connNodes {
+	for _, node := range n.connNodes {
 		sum += node.signal * n.weights[node]
 	}
 	n.signal = n.afn.fn(sum)
@@ -79,7 +79,7 @@ type NN struct {
 	neurons []*Node
 }
 
-// NewNN encodes a genome into a neural network (phenotype).
+// NewNN decodes a genome into a neural network (phenotype).
 func NewNN(g *Genome) *NN {
 	nodes := make([]*Node, len(g.nodes))
 	for i := range g.nodes {
@@ -89,7 +89,7 @@ func NewNN(g *Genome) *NN {
 	for _, conn := range g.conns {
 		// connect the two nodes
 		if !conn.disabled {
-			node2.weights[node1] = conn.weight
+			// to be implemented
 		}
 	}
 
@@ -101,4 +101,7 @@ func NewNN(g *Genome) *NN {
 // ForwardPropagate
 func (n *NN) ForwardPropagate(intput []float64) []float64 {
 
+	// to be implemented
+
+	return nil
 }

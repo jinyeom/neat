@@ -141,10 +141,10 @@ func (g *Genome) Conn(innov int) *ConnGene {
 	return nil
 }
 
-// Compatibility returns the compatibility distance between this genome
+// Distance returns the compatibility distance between this genome
 // and the argument genome. The compatibility distance is a measurement
 // of two genomes' compatibility for speciating them.
-func (g *Genome) Compatibility(g1 *Genome) float64 {
+func (g *Genome) Distance(g1 *Genome) float64 {
 	numDisjoint := 0     // number of disjoint genes
 	numExcess := 0       // number of excess genes
 	numMatch := 0        // number of matching genes
@@ -152,10 +152,6 @@ func (g *Genome) Compatibility(g1 *Genome) float64 {
 
 	small := g  // genome with smaller max innov
 	large := g1 // genome with larger max innov
-
-	// sort connections by innovation numbers
-	sort.Sort(byInnov(small.conns))
-	sort.Sort(byInnov(large.conns))
 
 	maxSmallInnov := small.conns[len(small.conns)-1].innov
 	maxLargeInnov := large.conns[len(large.conns)-1].innov
@@ -288,6 +284,10 @@ func (g *Genome) Mutate() {
 	for i := range g.conns {
 		g.conns[i].mutate(param.MutWeightRate)
 	}
+
+	// sort nodes and connections
+	sort.Sort(byNID(g.nodes))
+	sort.Sort(byInnov(g.conns))
 }
 
 // mutateAddNode mutates the genome by adding a node between a

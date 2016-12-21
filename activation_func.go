@@ -37,22 +37,12 @@ package neat
 
 import (
 	"math"
-	"math/rand"
 )
 
 // ActivationSet is a collection of all activation functions.
 var ActivationSet = []*ActivationFunc{
 	Identity(),
-	Tanh(),
-	Sin(),
-	Cos(),
 	Sigmoid(),
-	ReLU(),
-	Log(),
-	Exp(),
-	Abs(),
-	Square(),
-	Cube(),
 }
 
 // ActivationFunc is a function type of which the independence
@@ -61,12 +51,6 @@ var ActivationSet = []*ActivationFunc{
 type ActivationFunc struct {
 	name string                  // name of the function
 	fn   func(x float64) float64 // activation function
-}
-
-// RandActivationFunc returns a randomly selected activation
-// function from the ActivationSet.
-func RandActivationFunc() *ActivationFunc {
-	return ActivationSet[rand.Intn(len(ActivationSet))]
 }
 
 // Identity returns the identity function as an activation
@@ -80,31 +64,6 @@ func Identity() *ActivationFunc {
 	}
 }
 
-// Tanh returns the hyperbolic tangent function as an activation
-// function.
-func Tanh() *ActivationFunc {
-	return &ActivationFunc{
-		name: "tanh",
-		fn:   math.Tanh,
-	}
-}
-
-// Sin returns the sin function as an activation function.
-func Sin() *ActivationFunc {
-	return &ActivationFunc{
-		name: "sin",
-		fn:   math.Sin,
-	}
-}
-
-// Cos returns the cosine function as an activation function.
-func Cos() *ActivationFunc {
-	return &ActivationFunc{
-		name: "cos",
-		fn:   math.Cos,
-	}
-}
-
 // Sigmoid returns the sigmoid (or soft step) function as an
 // activation function.
 func Sigmoid() *ActivationFunc {
@@ -112,63 +71,6 @@ func Sigmoid() *ActivationFunc {
 		name: "sigmoid",
 		fn: func(x float64) float64 {
 			return 1.0 / (1.0 + math.Exp(-x))
-		},
-	}
-}
-
-// ReLU returns a rectifier linear unit as an activation function.
-func ReLU() *ActivationFunc {
-	return &ActivationFunc{
-		name: "relu",
-		fn: func(x float64) float64 {
-			if x > 0.0 {
-				return x
-			}
-			return 0.0
-		},
-	}
-}
-
-// Log returns the log function as an activation function.
-func Log() *ActivationFunc {
-	return &ActivationFunc{
-		name: "log",
-		fn:   math.Log,
-	}
-}
-
-// Exp returns the exponential function as an activation function.
-func Exp() *ActivationFunc {
-	return &ActivationFunc{
-		name: "exp",
-		fn:   math.Exp,
-	}
-}
-
-// Abs returns the absolute value function as an activation function.
-func Abs() *ActivationFunc {
-	return &ActivationFunc{
-		name: "abs",
-		fn:   math.Abs,
-	}
-}
-
-// Square returns the square function as an activation function.
-func Square() *ActivationFunc {
-	return &ActivationFunc{
-		name: "square",
-		fn: func(x float64) float64 {
-			return x * x
-		},
-	}
-}
-
-// Cube returns the cube function as an activation function.
-func Cube() *ActivationFunc {
-	return &ActivationFunc{
-		name: "cube",
-		fn: func(x float64) float64 {
-			return x * x * x
 		},
 	}
 }
