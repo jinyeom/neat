@@ -302,7 +302,7 @@ func (g *Genome) mutateAddNode() {
 		oldOut := g.conns[ci].Out()
 
 		// Create a new node that will be placed between a connection
-		newNode := NewNodeGene(len(g.nodes), "hidden", Sigmoid())
+		newNode := NewNodeGene(len(g.nodes), "hidden", afnSet.RandFunc())
 		g.nodes = append(g.nodes, newNode)
 
 		// The first connection that will be created by spliting an existing

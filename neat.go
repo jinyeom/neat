@@ -35,6 +35,10 @@ for the Go code in this page.
 
 package neat
 
+import (
+	"errors"
+)
+
 var (
 	// globalInnovNum is a global variable that keeps track of
 	// the chronology of the evolution via historical marking;
@@ -49,10 +53,39 @@ var (
 	innovations = make(map[[2]int]int)
 
 	// param is a global parameter that can only be manipulated internally;
-	// it is initialized as nil pointer and needs to be initialized in the
-	// before creating a new NEAT struct.
+	// it is initialized as nil pointer and needs to be initialized before
+	// creating a new NEAT struct.
 	param *Param
+
+	// afnSet is a global set of activation functions that are used within
+	// a network that is being evolved via NEAT; it is initialized as a nil
+	// pointer and needs to be initialized before creating a new NEAT struct.
+	afnSet ActivationSet
+
+	// initPass is an indicator of whether param and afnSet are initialized;
+	// it only becomes true when Init() is called.
+	initPass = false
 )
+
+// Init initializes NEAT by setting parameters and a set of activation set;
+// it returns an error if the argument parameter or activation set is invalid.
+func Init(p *Param, a ActivationSet) error {
+	// intialize parameter
+	if err := p.IsValid(); err != nil {
+		return err
+	}
+	param = p
+
+	// initialize activation set
+	if a == nil || len(a) == 0 {
+		return errors.New("invalid activation set")
+	}
+	afnSet = a
+
+	// pass and return
+	initPass = true
+	return nil
+}
 
 // NEAT is an implementation of NeuroEvolution of Augmenting
 // Topologies; it includes
@@ -64,9 +97,8 @@ type NEAT struct {
 
 // New creates NEAT and initializes its environment given a set of parameters.
 func New(evalFunc *EvaluationFunc) (*NEAT, error) {
-	// check if parameter is valid
-	if err := param.IsValid(); err != nil {
-		return nil, err
+	if !initPass {
+		return nil, errors.New("initializing check failed")
 	}
 
 	// initialize population

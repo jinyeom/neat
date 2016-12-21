@@ -33,7 +33,7 @@ func genomeStatus(g *Genome) {
 func TestGenome(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 
-	param = &Param{
+	Init(&Param{
 		NumSensors:     3,
 		NumOutputs:     2,
 		PopulationSize: 1,
@@ -43,7 +43,7 @@ func TestGenome(t *testing.T) {
 		CoeffExcess:    0.3,
 		CoeffDisjoint:  0.3,
 		CoeffWeight:    0.3,
-	}
+	}, CPPNSet())
 
 	// Test creating a new genome
 	fmt.Printf("=== Creating a Genome ===\n")
