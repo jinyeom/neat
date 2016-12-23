@@ -162,8 +162,10 @@ func (n *NEAT) Run(verbose bool) {
 				if d < param.DistThreshold {
 					n.species[k].AddGenome(n.population[j])
 					speciesPass = true
+					break
 				}
 			}
+			// if there is no match,
 			if !speciesPass {
 				// create and add a new species
 				n.species = append(n.species,
