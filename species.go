@@ -41,6 +41,7 @@ package neat
 type Species struct {
 	sid     int       // species ID
 	age     int       // species age
+	rep     *Genome   // species representative
 	genomes []*Genome // genomes in this species
 }
 
@@ -50,6 +51,7 @@ func NewSpecies(sid int, g *Genome) *Species {
 	return &Species{
 		sid:     sid,
 		age:     0,
+		rep:     g,
 		genomes: []*Genome{g},
 	}
 }
@@ -62,6 +64,11 @@ func (s *Species) SID() int {
 // Age returns this species' age.
 func (s *Species) Age() int {
 	return s.age
+}
+
+// Representative returns this species' representative.
+func (s *Species) Representative() *Genome {
+	return s.rep
 }
 
 // Genomes returns this species' member genomes.

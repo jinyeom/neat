@@ -90,4 +90,5 @@ func TestGenome(t *testing.T) {
 	genomeStatus(g1)
 	child := Crossover(g0, g1, 3)
 	genomeStatus(child)
+
 }

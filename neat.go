@@ -76,16 +76,15 @@ func Init(p *Param, a ActivationSet) error {
 	if err := p.IsValid(); err != nil {
 		return err
 	}
-	param = p
-
 	// initialize activation set
 	if a == nil || len(a) == 0 {
 		return errors.New("invalid activation set")
 	}
-	afnSet = a
 
-	// pass and return
+	param = p
+	afnSet = a
 	initPass = true
+
 	return nil
 }
 
@@ -150,14 +149,27 @@ func (n *NEAT) FitnessShare() {
 // Run executes NEAT algorithm.
 func (n *NEAT) Run(verbose bool) {
 	for i := 0; i < param.NumGeneration; i++ {
-		for i := range n.population {
-			network := n.population[i].Decode()
-			n.population[i].SetFitness(n.evalFunc(network))
-		}
-
 		// genome loop
+		for j, genome := range n.population {
+			// evaluate genome
+			network := n.population[j].Decode()
+			n.population[j].SetFitness(n.evalFunc(network))
 
-		// species loop
+			// species loop
+			speciesPass := false
+			for k, niche := range n.species {
+				d := genome.Distance(niche.Representative())
+				if d < param.DistThreshold {
+					n.species[k].AddGenome(n.population[j])
+					speciesPass = true
+				}
+			}
+			if !speciesPass {
+				// create and add a new species
+				n.species = append(n.species,
+					NewSpecies(len(n.species), n.population[j]))
+			}
+		}
 
 		// mutate
 
@@ -171,34 +183,36 @@ func (n *NEAT) RunParallel(verbose bool, procs int) {
 	runtime.GOMAXPROCS(procs)
 
 	var wg sync.WaitGroup
-	wg.Add(procs)
 
 	for i := 0; i < param.NumGeneration; i++ {
 		// number of evaluations per processor
 		numEval := param.PopulationSize / procs
 
-		iter := 0       // iterator
+		start := 0      // iterator
 		next := numEval // next iteration
 		for p := 0; p < procs; p++ {
-			go func() {
+			// handle leftover genomes
+			if next > param.PopulationSize {
+				next = param.PopulationSize
+			}
+
+			wg.Add(1)
+
+			go func(start int) {
 				defer wg.Done()
-
-				// handle leftover genomes
-				if next > param.PopulationSize {
-					next = param.PopulationSize
-				}
-
 				// iterate through this group of genomes
+				iter := start
 				for iter < next {
 					network := n.population[iter].Decode()
 					n.population[iter].SetFitness(n.evalFunc(network))
 					iter++
 				}
-			}()
+			}(start)
 
-			iter = next
+			start = next
 			next += numEval
 		}
+		wg.Wait()
 
 		// genome loop
 

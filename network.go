@@ -36,6 +36,7 @@ for the Go code in this page.
 package neat
 
 import (
+	"errors"
 	"sort"
 )
 
@@ -111,7 +112,7 @@ func NewNetwork(g *Genome) *Network {
 }
 
 // ForwardPropagate
-func (n *Network) ForwardPropagate(intputs []float64) ([]float64, error) {
+func (n *Network) ForwardPropagate(inputs []float64) ([]float64, error) {
 	if len(inputs) != param.NumSensors {
 		return nil, errors.New("Invalid number of inputs")
 	}
@@ -128,9 +129,9 @@ func (n *Network) ForwardPropagate(intputs []float64) ([]float64, error) {
 	}
 
 	// activate all output nodes
-	outputs := make([]float64, param.NumOutputs)
+	outputs := make([]float64, 0, param.NumOutputs)
 	for i := param.NumSensors; i < h; i++ {
-		outputs[i] = n.nodes[i].Output()
+		outputs = append(outputs, n.nodes[i].Output())
 	}
 
 	return outputs, nil
