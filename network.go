@@ -35,6 +35,10 @@ for the Go code in this page.
 
 package neat
 
+import (
+	"sort"
+)
+
 // Node implements a node in a phenotype network; it includes a node ID,
 // its activation function, and a signal value that the node holds.
 type Node struct {
@@ -87,7 +91,6 @@ func NewNetwork(g *Genome) *Network {
 	for _, conn := range g.conns {
 		// connect the two nodes
 		if !conn.disabled {
-			// search for in and out nodes
 			if in := sort.Search(len(nodes), func(i int) bool {
 				return nodes[i].nid >= conn.in
 			}); in < len(nodes) && nodes[in].nid == conn.in {
@@ -96,7 +99,7 @@ func NewNetwork(g *Genome) *Network {
 				}); out < len(nodes) && nodes[out].nid == conn.out {
 					// connect the two nodes
 					nodes[out].connNodes = append(nodes[out].connNodes, nodes[in])
-					nodes[out].weighst[nodes[in]] = conn.weight
+					nodes[out].weights[nodes[in]] = conn.weight
 				}
 			}
 		}
@@ -108,9 +111,27 @@ func NewNetwork(g *Genome) *Network {
 }
 
 // ForwardPropagate
-func (n *Network) ForwardPropagate(intput []float64) []float64 {
+func (n *Network) ForwardPropagate(intputs []float64) ([]float64, error) {
+	if len(inputs) != param.NumSensors {
+		return nil, errors.New("Invalid number of inputs")
+	}
 
-	// to be implemented
+	// register inputs to sensor nodes as signals
+	for i := 0; i < param.NumSensors; i++ {
+		n.nodes[i].signal = inputs[i]
+	}
 
-	return nil
+	// activate all hidden nodes
+	h := param.NumSensors + param.NumOutputs
+	for i := h; i < len(n.nodes); i++ {
+		n.nodes[i].Output()
+	}
+
+	// activate all output nodes
+	outputs := make([]float64, param.NumOutputs)
+	for i := param.NumSensors; i < h; i++ {
+		outputs[i] = n.nodes[i].Output()
+	}
+
+	return outputs, nil
 }
