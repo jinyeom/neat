@@ -174,6 +174,11 @@ func (n *NEAT) Run(verbose bool) {
 		// mutate
 
 		// crossover
+
+		// all niches age one generation
+		for j := range n.species {
+			n.species[j].numGenerations++
+		}
 	}
 }
 

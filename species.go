@@ -50,7 +50,7 @@ type Species struct {
 func NewSpecies(sid int, g *Genome) *Species {
 	return &Species{
 		sid:            sid,
-		age:            0,
+		numGenerations: 0,
 		representative: g,
 		genomes:        []*Genome{g},
 	}
