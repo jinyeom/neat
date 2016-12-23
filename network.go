@@ -75,6 +75,10 @@ type Network struct {
 
 // NewNetwork decodes a genome into a network (phenotype).
 func NewNetwork(g *Genome) *Network {
+	if !sort.IsSorted(byNID(g.nodes)) {
+		sort.Sort(byNID(g.nodes))
+	}
+
 	nodes := make([]*Node, len(g.nodes))
 	for i := range g.nodes {
 		nodes[i] = NewNode(g.nodes[i])
@@ -83,7 +87,18 @@ func NewNetwork(g *Genome) *Network {
 	for _, conn := range g.conns {
 		// connect the two nodes
 		if !conn.disabled {
-			// to be implemented
+			// search for in and out nodes
+			if in := sort.Search(len(nodes), func(i int) bool {
+				return nodes[i].nid >= conn.in
+			}); in < len(nodes) && nodes[in].nid == conn.in {
+				if out := sort.Search(len(nodes), func(i int) bool {
+					return nodes[i].nid >= conn.out
+				}); out < len(nodes) && nodes[out].nid == conn.out {
+					// connect the two nodes
+					nodes[out].connNodes = append(nodes[out].connNodes, nodes[in])
+					nodes[out].weighst[nodes[in]] = conn.weight
+				}
+			}
 		}
 	}
 
