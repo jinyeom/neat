@@ -39,20 +39,20 @@ package neat
 // are separated by measuring compatibility distance among genomes
 // within a population.
 type Species struct {
-	sid     int       // species ID
-	age     int       // species age
-	rep     *Genome   // species representative
-	genomes []*Genome // genomes in this species
+	sid            int       // species ID
+	numGenerations int       // species age (number of generations)
+	representative *Genome   // species representative
+	genomes        []*Genome // genomes in this species
 }
 
 // NewSpecies creates a new species given a species ID, and the genome
 // that first populates the new species.
 func NewSpecies(sid int, g *Genome) *Species {
 	return &Species{
-		sid:     sid,
-		age:     0,
-		rep:     g,
-		genomes: []*Genome{g},
+		sid:            sid,
+		age:            0,
+		representative: g,
+		genomes:        []*Genome{g},
 	}
 }
 
@@ -62,13 +62,13 @@ func (s *Species) SID() int {
 }
 
 // Age returns this species' age.
-func (s *Species) Age() int {
-	return s.age
+func (s *Species) NumGenerations() int {
+	return s.numGenerations
 }
 
 // Representative returns this species' representative.
 func (s *Species) Representative() *Genome {
-	return s.rep
+	return s.representative
 }
 
 // Genomes returns this species' member genomes.
