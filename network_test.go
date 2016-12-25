@@ -25,6 +25,9 @@ func PrintNetwork(n *Network) {
 func TestNetwork(t *testing.T) {
 	// Test creating a new network
 	fmt.Printf("=== Creating a Network ===\n")
+	param.NumSensors = 3
+	param.NumOutputs = 1
+
 	g := NewGenome(0)
 	for i := 0; i < 20; i++ {
 		g.Mutate()
@@ -45,4 +48,12 @@ func TestNetwork(t *testing.T) {
 		log.Fatal(err)
 	}
 	fmt.Printf("output: %f\n", outputs)
+	fmt.Println()
+
+	// Test an evaluation function
+	fmt.Printf("=== Evaluation of XOR ===\n")
+	xor := XORTest()
+	score := xor(n)
+	fmt.Printf("score: %f\n", score)
+	fmt.Println()
 }

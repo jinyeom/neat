@@ -173,9 +173,15 @@ func (n *NEAT) Run(verbose bool) {
 			}
 		}
 
-		// mutate
+		// mutation
+		for j := range n.population {
+			n.population[j].Mutate()
+		}
 
 		// crossover
+		//for j := range n.species {
+		//
+		//}
 
 		// all niches age one generation
 		for j := range n.species {

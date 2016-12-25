@@ -35,6 +35,62 @@ for the Go code in this page.
 
 package neat
 
+import (
+	"log"
+	"math"
+)
+
 // EvaluationFunc is a type of function that evaluates a network
 // and returns a float64 number as a fitness score.
 type EvaluationFunc func(n *Network) float64
+
+// XORTest returns an evaluation function in which a neural network is
+// evaluated for its ability to compute XOR operations; the evaluation
+// function returns its overall error as the network's fitness, which
+// means a network's score and its fitness are inversely related.
+func XORTest() EvaluationFunc {
+	return func(n *Network) float64 {
+		score := 0.0
+
+		inputs := make([]float64, 3)
+		inputs[0] = 1.0 // bias
+
+		// 0 xor 0
+		inputs[1] = 0.0
+		inputs[2] = 0.0
+		output, err := n.ForwardPropagate(inputs)
+		if err != nil {
+			log.Fatal(err)
+		}
+		score += math.Pow((output[0] - 0.0), 2.0)
+
+		// 0 xor 1
+		inputs[1] = 0.0
+		inputs[2] = 1.0
+		output, err = n.ForwardPropagate(inputs)
+		if err != nil {
+			log.Fatal(err)
+		}
+		score += math.Pow((output[0] - 1.0), 2.0)
+
+		// 1 xor 0
+		inputs[1] = 1.0
+		inputs[2] = 0.0
+		output, err = n.ForwardPropagate(inputs)
+		if err != nil {
+			log.Fatal(err)
+		}
+		score += math.Pow((output[0] - 1.0), 2.0)
+
+		// 1 xor 1
+		inputs[1] = 1.0
+		inputs[2] = 1.0
+		output, err = n.ForwardPropagate(inputs)
+		if err != nil {
+			log.Fatal(err)
+		}
+		score += math.Pow((output[0] - 0.0), 2.0)
+
+		return score
+	}
+}
