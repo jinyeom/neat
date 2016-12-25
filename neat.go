@@ -146,6 +146,10 @@ func (n *NEAT) FitnessShare() {
 	}
 }
 
+func (n *NEAT) updateBest(g *Genome) {
+
+}
+
 // Run executes NEAT algorithm.
 func (n *NEAT) Run(verbose bool) {
 	for i := 0; i < param.NumGeneration; i++ {
