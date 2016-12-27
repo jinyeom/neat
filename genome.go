@@ -380,8 +380,3 @@ func (g *Genome) mutateAddConn() {
 	}
 	g.conns = append(g.conns, NewConnGene(innov, in, out, rand.NormFloat64()))
 }
-
-// Decode decodes this genome and return its phenotype network.
-func (g *Genome) Decode() *Network {
-	return NewNetwork(g)
-}

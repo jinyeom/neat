@@ -6,7 +6,8 @@ import (
 
 // Toolbox is a container that consists of all functions that are
 // utilized for NEAT operations, such as activation, selection, or
-// evaluation.
+// evaluation. Toolbox needs be to initialized prior to creating
+// a NEAT struct.
 type Toolbox struct {
 	Activation ActivationSet
 	Comparison CompareFunc

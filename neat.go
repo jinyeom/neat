@@ -148,8 +148,8 @@ func (n *NEAT) Run(verbose bool) {
 		// genome loop
 		for j, genome := range n.population {
 			// evaluate genome
-			network := n.population[j].Decode()
-			n.population[j].SetFitness(toolbox.Evaluation(network))
+			score := toolbox.Evaluation(n.population[j])
+			n.population[j].SetFitness(score)
 
 			// species loop
 			speciesPass := false
@@ -212,8 +212,8 @@ func (n *NEAT) RunParallel(verbose bool, procs int) {
 				// iterate through this group of genomes
 				iter := start
 				for iter < next {
-					network := n.population[iter].Decode()
-					n.population[iter].SetFitness(toolbox.Evaluation(network))
+					score := toolbox.Evaluation(n.population[iter])
+					n.population[iter].SetFitness(score)
 					iter++
 				}
 			}(start)

@@ -40,16 +40,18 @@ import (
 	"math"
 )
 
-// EvaluationFunc is a type of function that evaluates a network
+// EvaluationFunc is a type of function that evaluates a genome
 // and returns a float64 number as a fitness score.
-type EvaluationFunc func(n *Network) float64
+type EvaluationFunc func(g *Genome) float64
 
 // XORTest returns an evaluation function in which a neural network is
 // evaluated for its ability to compute XOR operations; the evaluation
 // function returns its overall error as the network's fitness, which
 // means a network's score and its fitness are inversely related.
 func XORTest() EvaluationFunc {
-	return func(n *Network) float64 {
+	return func(g *Genome) float64 {
+		n := NewNetwork(g)
+
 		score := 0.0
 
 		inputs := make([]float64, 3)

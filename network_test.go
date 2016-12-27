@@ -53,7 +53,7 @@ func TestNetwork(t *testing.T) {
 	// Test an evaluation function
 	fmt.Printf("=== Evaluation of XOR ===\n")
 	xor := XORTest()
-	score := xor(n)
+	score := xor(g)
 	fmt.Printf("score: %f\n", score)
 	fmt.Println()
 }
