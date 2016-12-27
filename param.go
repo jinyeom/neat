@@ -57,9 +57,14 @@ type Param struct {
 	NumSensors int // number of sensors
 	NumOutputs int // number of outputs
 
+	// EA-specific parameters
 	PopulationSize int     // population size
 	NumGeneration  int     // number of generations
-	DistThreshold  float64 // compatibility distance threshold
+	SurvivalRate   float64 // survival rate for reproduction
+
+	// NEAT-specific parameters
+	DistThreshold float64 // compatibility distance threshold
+	DropoffAge    int     // number of ages for checking stagnation
 
 	// Crossover and Mutation rates
 	CrossoverRate  float64 // crossover rate

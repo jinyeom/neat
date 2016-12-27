@@ -35,15 +35,19 @@ for the Go code in this page.
 
 package neat
 
+import (
+	"sort"
+)
+
 // Species is an implementation of species of genomes in NEAT, which
 // are separated by measuring compatibility distance among genomes
 // within a population.
 type Species struct {
 	sid            int       // species ID
 	age            int       // species age (in generations)
-	stagnation     int       // duration of stagnation
+	prevFitness    float64   // previous average fitness
 	representative *Genome   // species representative
-	genomes        []*Genome // genomes in this species
+	members        []*Genome // genomes in this species
 }
 
 // NewSpecies creates a new species given a species ID, and the genome
@@ -52,9 +56,9 @@ func NewSpecies(sid int, g *Genome) *Species {
 	return &Species{
 		sid:            sid,
 		age:            0,
-		stagnation:     0,
+		prevFitness:    0.0,
 		representative: g,
-		genomes:        []*Genome{g},
+		members:        []*Genome{g},
 	}
 }
 
@@ -73,21 +77,55 @@ func (s *Species) Representative() *Genome {
 	return s.representative
 }
 
-// Genomes returns this species' member genomes.
-func (s *Species) Genomes() []*Genome {
-	return s.genomes
+// Members returns this species' member genomes.
+func (s *Species) Members() []*Genome {
+	return s.members
 }
 
 // AddGenome adds a new genome to this species.
-func (s *Species) AddGenome(g *Genome) {
-	s.genomes = append(s.genomes, g)
+func (s *Species) AddMember(g *Genome) {
+	g.sid = s.sid
+	s.members = append(s.members, g)
+}
+
+// Select sorts the members by their fitness values and update them based on
+// the survival rate; return the remaining members.
+func (s *Species) Select() []*Genome {
+	sort.Sort(byFitness(s.members))
+	survived := int(len(s.members) * param.SurvivalRate)
+	s.members = s.members[:survived]
+	return s.members
 }
 
 // Champion returns the genome with the best fitness value in this species.
 func (s *Species) Champion() *Genome {
+	champion := s.members[0]
+	for i := range s.members {
+		if toolbox.Comparison(s.members[i], champion) == 1 {
+			champion = s.members[i]
+		}
+	}
+	return champion
+}
 
-	// to be implemented
+// AvgFitness returns the species' average fitness.
+func (s *Species) AvgFitness() float64 {
+	fitnessSum := 0.0
+	for i := range s.members {
+		fitnessSum += s.members[i].fitness
+	}
+	return fitnessSum / float64(len(s.members))
+}
 
-	return nil
-
+// IsStagnant checks whether a species is stagnant based on comparison between
+// previous and current average fitnesses; this function call also updates its
+// previous average fitness to the current fitness.
+func (s *Species) IsStagnant() bool {
+	avgFitness := s.AvgFitness()
+	if s.prevFitness < avgFitness {
+		s.prevFitness = avgFitness
+		return true
+	}
+	s.prevFitness = avgFitness
+	return false
 }

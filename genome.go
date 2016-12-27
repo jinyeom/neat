@@ -380,3 +380,11 @@ func (g *Genome) mutateAddConn() {
 	}
 	g.conns = append(g.conns, NewConnGene(innov, in, out, rand.NormFloat64()))
 }
+
+// byFitness implements sort.Interface for []*Genome based on the genomes'
+// fitness values.
+type byFitness []*Genome
+
+func (b byFitness) Len() int           { return len(b) }
+func (b byFitness) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
+func (b byFitness) Less(i, j int) bool { return toolbox.Comparison(b[i], b[j]) == -1 }

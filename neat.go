@@ -38,6 +38,7 @@ package neat
 import (
 	"errors"
 	"runtime"
+	"sort"
 	"sync"
 )
 
@@ -142,32 +143,45 @@ func (n *NEAT) FitnessShare() {
 	}
 }
 
+func (n *NEAT) evaluate() {
+	for i, genome := range n.population {
+		score := toolbox.Evaluation(genome)
+		n.population[i].SetFitness(score)
+	}
+}
+
+func (n *NEAT) speciate() {
+	for i, genome := range n.population {
+		// species loop
+		pass := false
+		for j, species := range n.species {
+			d := genome.Distance(species.representative)
+			if d < param.DistThreshold {
+				n.species[j].AddMember(n.population[i])
+				pass = true
+				break
+			}
+		}
+		if pass == false {
+			// create a new species
+			ns := NewSpecies(len(n.species), n.population[i])
+			n.species = append(n.species, ns)
+		}
+	}
+
+	// remove species with no members
+	for i := range n.species {
+		if len(n.species[i].members) == 0 {
+			n.species = append(n.species[:i], n.species[i+1:])
+		}
+	}
+}
+
 // Run executes NEAT algorithm.
 func (n *NEAT) Run(verbose bool) {
 	for i := 0; i < param.NumGeneration; i++ {
-		// genome loop
-		for j, genome := range n.population {
-			// evaluate genome
-			score := toolbox.Evaluation(n.population[j])
-			n.population[j].SetFitness(score)
-
-			// species loop
-			speciesPass := false
-			for k, niche := range n.species {
-				d := genome.Distance(niche.representative)
-				if d < param.DistThreshold {
-					n.species[k].AddGenome(n.population[j])
-					speciesPass = true
-					break
-				}
-			}
-			// if there is no match,
-			if !speciesPass {
-				// create and add a new species
-				n.species = append(n.species,
-					NewSpecies(len(n.species), n.population[j]))
-			}
-		}
+		n.evaluate()
+		n.speciate()
 
 		// mutation
 		for j := range n.population {
@@ -179,8 +193,9 @@ func (n *NEAT) Run(verbose bool) {
 		//
 		//}
 
-		// all niches age one generation
 		for j := range n.species {
+			sort.Sort(byFitness(n.species[j].members))
+
 			n.species[j].age++
 		}
 	}

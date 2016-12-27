@@ -11,7 +11,6 @@ import (
 type Toolbox struct {
 	Activation ActivationSet
 	Comparison CompareFunc
-	Selection  SelectFunc
 	Evaluation EvaluationFunc
 }
 
@@ -23,9 +22,6 @@ func (t *Toolbox) IsValid() error {
 	}
 	if t.Comparison == nil {
 		return errors.New("comparison not initialized")
-	}
-	if t.Selection == nil {
-		return errors.New("selection not initialized")
 	}
 	if t.Evaluation == nil {
 		return errors.New("evaluation not initialized")
