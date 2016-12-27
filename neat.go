@@ -55,14 +55,13 @@ var (
 	innovations = make(map[[2]int]int)
 
 	// param is a global parameter that can only be manipulated internally;
-	// it is initialized as nil pointer and needs to be initialized before
-	// creating a new NEAT struct.
+	// it needs to be initialized before creating a new NEAT struct.
 	param *Param
 
-	// afnSet is a global set of activation functions that are used within
-	// a network that is being evolved via NEAT; it is initialized as a nil
-	// pointer and needs to be initialized before creating a new NEAT struct.
-	afnSet ActivationSet
+	// toolbox is a wrapper of all functions that are utilized widely for
+	// NEAT operations, such as selection, activation, or evaluation; it needs
+	// to be initialized before creating a new NEAT struct.
+	toolbox *Toolbox
 
 	// initPass is an indicator of whether param and afnSet are initialized;
 	// it only becomes true when Init() is called.
@@ -71,18 +70,17 @@ var (
 
 // Init initializes NEAT by setting parameters and a set of activation set;
 // it returns an error if the argument parameter or activation set is invalid.
-func Init(p *Param, a ActivationSet) error {
-	// intialize parameter
+func Init(p *Param, tb *Toolbox) error {
+	// check validity
 	if err := p.IsValid(); err != nil {
 		return err
 	}
-	// initialize activation set
-	if a == nil || len(a) == 0 {
-		return errors.New("invalid activation set")
+	if err := tb.IsValid(); err != nil {
+		return err
 	}
 
 	param = p
-	afnSet = a
+	toolbox = tb
 	initPass = true
 
 	return nil
@@ -91,13 +89,12 @@ func Init(p *Param, a ActivationSet) error {
 // NEAT is an implementation of NeuroEvolution of Augmenting
 // Topologies; it includes
 type NEAT struct {
-	evalFunc   EvaluationFunc // evaluation function
-	population []*Genome      // population of genomes
-	species    []*Species     // ordered list of species
+	population []*Genome  // population of genomes
+	species    []*Species // ordered list of species
 }
 
 // New creates NEAT and initializes its environment given a set of parameters.
-func New(evalFunc EvaluationFunc) (*NEAT, error) {
+func New() (*NEAT, error) {
 	if !initPass {
 		return nil, errors.New("initializing check failed")
 	}
@@ -112,7 +109,6 @@ func New(evalFunc EvaluationFunc) (*NEAT, error) {
 	species := []*Species{NewSpecies(0, population[0])}
 
 	return &NEAT{
-		evalFunc:   evalFunc,
 		population: population,
 		species:    species,
 	}, nil
@@ -146,10 +142,6 @@ func (n *NEAT) FitnessShare() {
 	}
 }
 
-func (n *NEAT) updateBest(g *Genome) {
-
-}
-
 // Run executes NEAT algorithm.
 func (n *NEAT) Run(verbose bool) {
 	for i := 0; i < param.NumGeneration; i++ {
@@ -157,12 +149,12 @@ func (n *NEAT) Run(verbose bool) {
 		for j, genome := range n.population {
 			// evaluate genome
 			network := n.population[j].Decode()
-			n.population[j].SetFitness(n.evalFunc(network))
+			n.population[j].SetFitness(toolbox.Evaluation(network))
 
 			// species loop
 			speciesPass := false
 			for k, niche := range n.species {
-				d := genome.Distance(niche.Representative())
+				d := genome.Distance(niche.representative)
 				if d < param.DistThreshold {
 					n.species[k].AddGenome(n.population[j])
 					speciesPass = true
@@ -189,7 +181,7 @@ func (n *NEAT) Run(verbose bool) {
 
 		// all niches age one generation
 		for j := range n.species {
-			n.species[j].numGenerations++
+			n.species[j].age++
 		}
 	}
 }
@@ -221,7 +213,7 @@ func (n *NEAT) RunParallel(verbose bool, procs int) {
 				iter := start
 				for iter < next {
 					network := n.population[iter].Decode()
-					n.population[iter].SetFitness(n.evalFunc(network))
+					n.population[iter].SetFitness(toolbox.Evaluation(network))
 					iter++
 				}
 			}(start)

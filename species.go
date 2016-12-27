@@ -40,7 +40,8 @@ package neat
 // within a population.
 type Species struct {
 	sid            int       // species ID
-	numGenerations int       // species age (number of generations)
+	age            int       // species age (in generations)
+	stagnation     int       // duration of stagnation
 	representative *Genome   // species representative
 	genomes        []*Genome // genomes in this species
 }
@@ -50,7 +51,8 @@ type Species struct {
 func NewSpecies(sid int, g *Genome) *Species {
 	return &Species{
 		sid:            sid,
-		numGenerations: 0,
+		age:            0,
+		stagnation:     0,
 		representative: g,
 		genomes:        []*Genome{g},
 	}
@@ -62,8 +64,8 @@ func (s *Species) SID() int {
 }
 
 // Age returns this species' age.
-func (s *Species) NumGenerations() int {
-	return s.numGenerations
+func (s *Species) Age() int {
+	return s.age
 }
 
 // Representative returns this species' representative.
@@ -79,4 +81,13 @@ func (s *Species) Genomes() []*Genome {
 // AddGenome adds a new genome to this species.
 func (s *Species) AddGenome(g *Genome) {
 	s.genomes = append(s.genomes, g)
+}
+
+// Champion returns the genome with the best fitness value in this species.
+func (s *Species) Champion() *Genome {
+
+	// to be implemented
+
+	return nil
+
 }
