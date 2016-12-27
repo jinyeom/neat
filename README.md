@@ -21,8 +21,7 @@ param := NewParam("xor_param.np")
 toolbox := &Toolbox{
     Activation: neat.NEATSet(),
     Comparison: neat.DirectCompare(),
-    Selection:  TSelect(DirectCompare()),
-    Evaluation: XORTest(),
+    Evaluation: neat.XORTest(),
 }
 
 neat.Init(param, toolbox)
