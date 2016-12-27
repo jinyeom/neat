@@ -42,12 +42,12 @@ import (
 // SelectFunc is a type of function that selects a genome
 // from the argument pool of genomes, based on a fitness
 // comparison policy.
-type SelectFunc func(CompareFunc, []*Genome) *Genome
+type SelectFunc func([]*Genome) *Genome
 
 // TSelect() returns a selection function that performs
-// Tournament Selection given a comparison function.
-func TSelect() SelectFunc {
-	return func(c CompareFunc, p []*Genome) *Genome {
+// Tournament Selection, given a comparison function.
+func TSelect(c CompareFunc) SelectFunc {
+	return func(p []*Genome) *Genome {
 		popSize := len(p)
 		best := rand.Intn(popSize)
 		for i := 0; i < popSize; i++ {
@@ -62,8 +62,8 @@ func TSelect() SelectFunc {
 
 // FPSelect() returns a selection function that performs
 // Fitness-Proportionate Selection (not recommended).
-func FPSelect() SelectFunc {
-	return func(c CompareFunc, p []*Genome) *Genome {
+func FPSelect(c CompareFunc) SelectFunc {
+	return func(p []*Genome) *Genome {
 		popSize := len(p)
 		best := p[rand.Intn(popSize)]
 		bestScore := best.fitness
