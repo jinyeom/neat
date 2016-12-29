@@ -56,4 +56,7 @@ func TestNetwork(t *testing.T) {
 	score := xor(g)
 	fmt.Printf("score: %f\n", score)
 	fmt.Println()
+
+	// Test a CPPN
+
 }

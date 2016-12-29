@@ -88,14 +88,16 @@ type Param struct {
 //  NumOutputs 3
 //  PopulationSize 50
 //  NumGeneration 50
+//  SurvivalRate 0.2
 //  DistThreshold 1.0
+//  DropoffAge 15
 //  CrossoverRate 0.1
 //  MutAddNodeRate 0.1
 //  MutAddConnRate 0.1
 //  MutWeightRate 0.1
-//  CoeffExcess 0.5
-//  CoeffDisjoint 0.5
-//  CoeffWeight 0.5
+//  CoeffExcess 1.0
+//  CoeffDisjoint 1.0
+//  CoeffWeight 2.0
 //
 func NewParam(filename string) (*Param, error) {
 	// parse parameter file
@@ -145,12 +147,26 @@ func NewParam(filename string) (*Param, error) {
 			}
 			param.NumGeneration = numGeneration
 
+		case "SurvivalRate":
+			survivalRate, err := strconv.ParseFloat(parsed[1], 64)
+			if err != nil {
+				return nil, err
+			}
+			param.SurvivalRate = survivalRate
+
 		case "DistThreshold":
 			distThreshold, err := strconv.ParseFloat(parsed[1], 64)
 			if err != nil {
 				return nil, err
 			}
 			param.DistThreshold = distThreshold
+
+		case "DropoffAge":
+			dropoffAge, err := strconv.Atoi(parsed[1])
+			if err != nil {
+				return nil, err
+			}
+			param.DropoffAge = dropoffAge
 
 		case "MutAddNodeRate":
 			mutAddNodeRate, err := strconv.ParseFloat(parsed[1], 64)

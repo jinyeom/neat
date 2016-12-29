@@ -46,7 +46,6 @@ func TestGenome(t *testing.T) {
 	}, &Toolbox{
 		Activation: NEATSet(),
 		Comparison: DirectCompare(),
-		Selection:  TSelect(DirectCompare()),
 		Evaluation: XORTest(),
 	})
 

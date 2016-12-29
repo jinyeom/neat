@@ -97,7 +97,7 @@ type NEAT struct {
 // New creates NEAT and initializes its environment given a set of parameters.
 func New() (*NEAT, error) {
 	if !initPass {
-		return nil, errors.New("initializing check failed")
+		return nil, errors.New("Initialization check failed")
 	}
 
 	// initialize population
@@ -143,11 +143,22 @@ func (n *NEAT) FitnessShare() {
 	}
 }
 
+// evaluate executes evaluation function on each genome of the population,
+// and sets their fitness values.
 func (n *NEAT) evaluate() {
 	for i, genome := range n.population {
 		score := toolbox.Evaluation(genome)
 		n.population[i].SetFitness(score)
 	}
+}
+
+func (n *NEAT) evaluateParallel(procs int) {
+	runtime.GOMAXPROCS(procs)
+
+	// var wg sync.WaitGroup
+
+	// to be implemented
+
 }
 
 func (n *NEAT) speciate() {
@@ -188,13 +199,7 @@ func (n *NEAT) Run(verbose bool) {
 			n.population[j].Mutate()
 		}
 
-		// crossover
-		//for j := range n.species {
-		//
-		//}
-
 		for j := range n.species {
-			sort.Sort(byFitness(n.species[j].members))
 
 			n.species[j].age++
 		}

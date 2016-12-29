@@ -1,8 +1,15 @@
 NumSensors 5
 NumOutputs 3
 PopulationSize 50
-CrossoverRate 0.1
+NumGeneration 50
+SurvivalRate 0.2
+DistThreshold 1.0
+DropoffAge 15
+CrossoverRate 0.2
 MutAddNodeRate 0.1
 MutAddConnRate 0.1
 MutWeightRate 0.1
+CoeffExcess 1.0
+CoeffDisjoint 1.0
+CoeffWeight 2.0
 
