@@ -115,34 +115,6 @@ func New() (*NEAT, error) {
 	}, nil
 }
 
-// sh implements a part of the explicit fitness sharing function, sh.
-// If a compatibility distance 'd' is larger than the compatibility
-// threshold 'dt', return 0; otherwise, return 1.
-func sh(d float64) float64 {
-	if d > param.DistThreshold {
-		return 0.0
-	}
-	return 1.0
-}
-
-// FitnessShare computes and assigns the shared fitness of genomes,
-// via explicit fitness sharing.
-func (n *NEAT) FitnessShare() {
-	adjusted := make(map[int]float64)
-	for _, g0 := range n.population {
-		adjustment := 0.0
-		for _, g1 := range n.population {
-			adjustment += sh(g0.Distance(g1))
-		}
-		if adjustment != 0.0 {
-			adjusted[g0.gid] = g0.fitness / adjustment
-		}
-	}
-	for i := range n.population {
-		n.population[i].fitness = adjusted[n.population[i].gid]
-	}
-}
-
 // evaluate executes evaluation function on each genome of the population,
 // and sets their fitness values.
 func (n *NEAT) evaluate() {
@@ -199,9 +171,10 @@ func (n *NEAT) Run(verbose bool) {
 			n.population[j].Mutate()
 		}
 
-		for j := range n.species {
-
-			n.species[j].age++
+		// crossover and fitness share
+		for j, niche := range n.species {
+			niche.FitnessShare()
+			niche.age++
 		}
 	}
 }
