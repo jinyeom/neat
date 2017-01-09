@@ -116,7 +116,7 @@ func New() (*NEAT, error) {
 
 // evaluate executes evaluation function on each genome of the population,
 // and sets their fitness values. Evaluation is done with maximum of 4 parallel
-// processors.
+// processors for fast performance.
 func (n *NEAT) evaluate() {
 	runtime.GOMAXPROCS(4)
 

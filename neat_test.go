@@ -46,4 +46,18 @@ func TestNEAT(t *testing.T) {
 			fmt.Printf("Member %d: GENOME %d\n", j, member.gid)
 		}
 	}
+
+	fmt.Printf("=== Explicit Fitness Sharing Test ===\n")
+	fmt.Printf("Before explicit fitness sharing:\n")
+	for i, genome := range n.population {
+		fmt.Printf("GENOME %d: %f\n", i, genome.fitness)
+	}
+	for _, niche := range n.species {
+		niche.FitnessShare()
+	}
+	fmt.Printf("After explicit fitness sharing:\n")
+	for i, genome := range n.population {
+		fmt.Printf("GENOME %d: %f\n", i, genome.fitness)
+	}
+
 }
