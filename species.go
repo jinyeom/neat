@@ -92,7 +92,7 @@ func (s *Species) AddMember(g *Genome) {
 // the survival rate; return the remaining members.
 func (s *Species) Select() []*Genome {
 	sort.Sort(byFitness(s.members))
-	survived := int(len(s.members) * param.SurvivalRate)
+	survived := int(float64(len(s.members)) * param.SurvivalRate)
 	s.members = s.members[:survived]
 	return s.members
 }
@@ -153,7 +153,7 @@ func (s *Species) FitnessShare() {
 			adjusted[g0.gid] = g0.fitness / adjustment
 		}
 	}
-	for i, member := range s.members {
+	for _, member := range s.members {
 		member.fitness = adjusted[member.gid]
 	}
 }

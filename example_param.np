@@ -1,9 +1,9 @@
-NumSensors 5
-NumOutputs 3
+NumSensors 3
+NumOutputs 1
 PopulationSize 50
 NumGeneration 50
 SurvivalRate 0.2
-DistThreshold 1.0
+DistThreshold 2.0
 DropoffAge 15
 CrossoverRate 0.2
 MutAddNodeRate 0.1

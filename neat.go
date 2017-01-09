@@ -38,7 +38,6 @@ package neat
 import (
 	"errors"
 	"runtime"
-	"sort"
 	"sync"
 )
 
@@ -116,21 +115,52 @@ func New() (*NEAT, error) {
 }
 
 // evaluate executes evaluation function on each genome of the population,
-// and sets their fitness values.
+// and sets their fitness values. Evaluation is done with maximum of 4 parallel
+// processors.
 func (n *NEAT) evaluate() {
-	for i, genome := range n.population {
-		score := toolbox.Evaluation(genome)
-		n.population[i].SetFitness(score)
-	}
-}
+	runtime.GOMAXPROCS(4)
 
-func (n *NEAT) evaluateParallel(procs int) {
-	runtime.GOMAXPROCS(procs)
+	gap := len(n.population) / 4
 
-	// var wg sync.WaitGroup
+	var wg sync.WaitGroup
 
-	// to be implemented
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for i := 0; i < gap; i++ {
+			score := toolbox.Evaluation(n.population[i])
+			n.population[i].SetFitness(score)
+		}
+	}()
 
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for i := gap; i < gap*2; i++ {
+			score := toolbox.Evaluation(n.population[i])
+			n.population[i].SetFitness(score)
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for i := gap * 2; i < gap*3; i++ {
+			score := toolbox.Evaluation(n.population[i])
+			n.population[i].SetFitness(score)
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for i := gap * 3; i < len(n.population); i++ {
+			score := toolbox.Evaluation(n.population[i])
+			n.population[i].SetFitness(score)
+		}
+	}()
+
+	wg.Wait()
 }
 
 func (n *NEAT) speciate() {
@@ -155,7 +185,7 @@ func (n *NEAT) speciate() {
 	// remove species with no members
 	for i := range n.species {
 		if len(n.species[i].members) == 0 {
-			n.species = append(n.species[:i], n.species[i+1:])
+			n.species = append(n.species[:i], n.species[i+1:]...)
 		}
 	}
 }
@@ -166,62 +196,10 @@ func (n *NEAT) Run(verbose bool) {
 		n.evaluate()
 		n.speciate()
 
-		// mutation
-		for j := range n.population {
-			n.population[j].Mutate()
-		}
-
 		// crossover and fitness share
-		for j, niche := range n.species {
+		for _, niche := range n.species {
 			niche.FitnessShare()
 			niche.age++
 		}
-	}
-}
-
-// RunParallel executes NEAT algorithm in parallel by separating the
-// evaluation of individuals in a population into different processor.
-func (n *NEAT) RunParallel(verbose bool, procs int) {
-	runtime.GOMAXPROCS(procs)
-
-	var wg sync.WaitGroup
-
-	for i := 0; i < param.NumGeneration; i++ {
-		// number of evaluations per processor
-		numEval := param.PopulationSize / procs
-
-		start := 0      // iterator
-		next := numEval // next iteration
-		for p := 0; p < procs; p++ {
-			// handle leftover genomes
-			if next > param.PopulationSize {
-				next = param.PopulationSize
-			}
-
-			wg.Add(1)
-
-			go func(start int) {
-				defer wg.Done()
-				// iterate through this group of genomes
-				iter := start
-				for iter < next {
-					score := toolbox.Evaluation(n.population[iter])
-					n.population[iter].SetFitness(score)
-					iter++
-				}
-			}(start)
-
-			start = next
-			next += numEval
-		}
-		wg.Wait()
-
-		// genome loop
-
-		// species loop
-
-		// mutate
-
-		// crossover
 	}
 }
