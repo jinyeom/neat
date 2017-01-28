@@ -60,7 +60,7 @@ func XORTest() EvaluationFunc {
 		// 0 xor 0
 		inputs[1] = 0.0
 		inputs[2] = 0.0
-		output, err := n.ForwardPropagate(inputs)
+		output, err := n.Activate(inputs)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -69,7 +69,7 @@ func XORTest() EvaluationFunc {
 		// 0 xor 1
 		inputs[1] = 0.0
 		inputs[2] = 1.0
-		output, err = n.ForwardPropagate(inputs)
+		output, err = n.Activate(inputs)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -78,7 +78,7 @@ func XORTest() EvaluationFunc {
 		// 1 xor 0
 		inputs[1] = 1.0
 		inputs[2] = 0.0
-		output, err = n.ForwardPropagate(inputs)
+		output, err = n.Activate(inputs)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -87,7 +87,7 @@ func XORTest() EvaluationFunc {
 		// 1 xor 1
 		inputs[1] = 1.0
 		inputs[2] = 1.0
-		output, err = n.ForwardPropagate(inputs)
+		output, err = n.Activate(inputs)
 		if err != nil {
 			log.Fatal(err)
 		}

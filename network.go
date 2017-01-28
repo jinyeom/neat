@@ -111,8 +111,7 @@ func NewNetwork(g *Genome) *Network {
 	}
 }
 
-// ForwardPropagate
-func (n *Network) ForwardPropagate(inputs []float64) ([]float64, error) {
+func (n *Network) Activate(inputs []float64) ([]float64, error) {
 	if len(inputs) != param.NumSensors {
 		return nil, errors.New("Invalid number of sensors")
 	}

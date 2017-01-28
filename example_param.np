@@ -1,7 +1,7 @@
 NumSensors 3
 NumOutputs 1
-PopulationSize 50
-NumGeneration 50
+PopulationSize 20
+NumGeneration 10
 SurvivalRate 0.2
 DistThreshold 2.0
 DropoffAge 15

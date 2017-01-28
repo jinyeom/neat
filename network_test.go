@@ -43,7 +43,7 @@ func TestNetwork(t *testing.T) {
 	for i := range inputs {
 		inputs[i] = rand.Float64()
 	}
-	outputs, err := n.ForwardPropagate(inputs)
+	outputs, err := n.Activate(inputs)
 	if err != nil {
 		log.Fatal(err)
 	}

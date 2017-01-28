@@ -37,7 +37,10 @@ package neat
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"runtime"
+	"sort"
 	"sync"
 )
 
@@ -175,7 +178,7 @@ func (n *NEAT) speciate() {
 				break
 			}
 		}
-		if pass == false {
+		if !pass {
 			// create a new species
 			ns := NewSpecies(len(n.species), n.population[i])
 			n.species = append(n.species, ns)
@@ -183,9 +186,13 @@ func (n *NEAT) speciate() {
 	}
 
 	// remove species with no members
-	for i := range n.species {
-		if len(n.species[i].members) == 0 {
-			n.species = append(n.species[:i], n.species[i+1:]...)
+	for i, niche := range n.species {
+		if len(niche.members) == 0 {
+			if len(n.species) < 1 {
+				n.species = []*Species{}
+			} else {
+				n.species = append(n.species[:i], n.species[i+1:]...)
+			}
 		}
 	}
 }
@@ -197,9 +204,56 @@ func (n *NEAT) Run(verbose bool) {
 		n.speciate()
 
 		// crossover and fitness share
+		n.population = []*Genome{}
 		for _, niche := range n.species {
 			niche.FitnessShare()
+			niche.VarMembers()
 			niche.age++
+
+			// add members that survived
+			n.population = append(n.population, niche.members...)
 		}
+		sort.Sort(byFitness(n.population))
+		fmt.Printf("Best: %f\n", n.population[0].fitness)
 	}
+	best := n.population[0]
+	nnet := NewNetwork(best)
+
+	inputs := make([]float64, 3)
+	inputs[0] = 1.0
+	// 0 xor 0
+	inputs[1] = 0.0
+	inputs[2] = 0.0
+	output, err := nnet.Activate(inputs)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("0 xor 0 = %f\n", output)
+
+	// 0 xor 1
+	inputs[1] = 0.0
+	inputs[2] = 1.0
+	output, err = nnet.Activate(inputs)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("0 xor 1 = %f\n", output)
+
+	// 1 xor 0
+	inputs[1] = 1.0
+	inputs[2] = 0.0
+	output, err = nnet.Activate(inputs)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("1 xor 0 = %f\n", output)
+
+	// 1 xor 1
+	inputs[1] = 1.0
+	inputs[2] = 1.0
+	output, err = nnet.Activate(inputs)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("1 xor 1 = %f\n", output)
 }

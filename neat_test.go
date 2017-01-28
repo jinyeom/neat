@@ -14,7 +14,7 @@ func TestNEAT(t *testing.T) {
 
 	tb := &Toolbox{
 		NEATSet(),
-		DirectCompare(),
+		InverseCompare(),
 		XORTest(),
 	}
 
@@ -60,4 +60,6 @@ func TestNEAT(t *testing.T) {
 		fmt.Printf("GENOME %d: %f\n", i, genome.fitness)
 	}
 
+	fmt.Printf("=== Run NEAT ===\n")
+	n.Run(false)
 }

@@ -36,6 +36,8 @@ for the Go code in this page.
 package neat
 
 import (
+	"math"
+	"math/rand"
 	"sort"
 )
 
@@ -58,7 +60,7 @@ func NewSpecies(sid int, g *Genome) *Species {
 		age:            0,
 		prevFitness:    0.0,
 		representative: g,
-		members:        []*Genome{g},
+		members:        []*Genome{},
 	}
 }
 
@@ -92,7 +94,7 @@ func (s *Species) AddMember(g *Genome) {
 // the survival rate; return the remaining members.
 func (s *Species) Select() []*Genome {
 	sort.Sort(byFitness(s.members))
-	survived := int(float64(len(s.members)) * param.SurvivalRate)
+	survived := int(math.Ceil(float64(len(s.members)) * param.SurvivalRate))
 	s.members = s.members[:survived]
 	return s.members
 }
@@ -156,4 +158,23 @@ func (s *Species) FitnessShare() {
 	for _, member := range s.members {
 		member.fitness = adjusted[member.gid]
 	}
+}
+
+// VarMembers selects n parent genomes and reproduce len(species) - n
+// number of children genomes; n is determined by survival rate from
+// parameter. Update the members.
+func (s *Species) VarMembers() {
+	numMembers := len(s.members)
+	survived := s.Select()
+	numSurvived := len(survived)
+
+	numChildren := numMembers - numSurvived
+	for i := 0; i < numChildren; i++ {
+		parent0 := survived[rand.Intn(numSurvived)]
+		parent1 := survived[rand.Intn(numSurvived)]
+		child := Crossover(parent0, parent1, 0)
+		survived = append(survived, child)
+	}
+
+	s.members = survived
 }
