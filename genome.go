@@ -2,6 +2,7 @@ package neat
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 )
 
@@ -239,5 +240,9 @@ func Compatibility(g0, g1 *Genome, c0, c1 float64) float64 {
 	for conn0, conn1 := range matching {
 		diffSum += math.Abs(conn0.Weight - conn1.Weight)
 	}
-	return c0*float64(unmatchingCount) + c1*(diffSum/float64(matchingCount))
+	avgDiff := diffSum / float64(matchingCount)
+	if matchingCount == 0 {
+		avgDiff = 0.0
+	}
+	return c0*float64(unmatchingCount) + c1*avgDiff
 }

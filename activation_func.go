@@ -47,6 +47,11 @@ var (
 )
 
 // ActivationFunc is a wrapper type for activation functions.
+//
+// While in this package, usage of this type is limited to only two functions,
+// identity and sigmoid, as they are the only activation functions used in NEAT,
+// more variety of functions are included in neat/cppn package for applications
+// of CPPN-NEAT.
 type ActivationFunc struct {
 	Name string                  // name of the function
 	Fn   func(x float64) float64 // activation function

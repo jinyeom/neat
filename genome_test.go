@@ -9,34 +9,64 @@ import (
 func GenomeUnitTest() {
 	fmt.Println("===== Genome Unit Test =====")
 
-	fmt.Println("=Testing creating a new genome...")
+	fmt.Println("\x1b[32m=Testing creating a new genome...\x1b[0m")
 	g0 := NewGenome(0, 3, 5)
 	fmt.Println(g0.String())
 
-	fmt.Println("=Testing mutation...")
+	fmt.Println("\x1b[32m=Testing mutation...\x1b[0m")
 	Mutate(g0, 1.0, 1.0, 1.0)
 	fmt.Println(g0.String())
 
-	fmt.Println("=Testing crossover...")
+	fmt.Println("\x1b[32m=Testing crossover...\x1b[0m")
 
-	// parent 1
 	g1 := NewGenome(1, 3, 1)
 	Mutate(g1, 1.0, 1.0, 1.0)
 	Mutate(g1, 1.0, 1.0, 1.0)
 	fmt.Println("Parent 1:")
 	fmt.Println(g1.String())
 
-	// parent 2
 	g2 := NewGenome(2, 3, 1)
 	Mutate(g2, 1.0, 1.0, 1.0)
 	Mutate(g2, 1.0, 1.0, 1.0)
 	fmt.Println("Parent 2:")
 	fmt.Println(g2.String())
 
-	// child
 	g3 := Crossover(3, g1, g2)
 	fmt.Println("Child:")
 	fmt.Println(g3.String())
+
+	fmt.Println("\x1b[32m=Testing compatibility distance...\x1b[0m")
+	g4 := NewGenome(4, 3, 1)
+	g5 := NewGenome(5, 3, 1)
+
+	// before mutation (they should be fairly compatible)
+	fmt.Println(g4.String())
+	fmt.Println(g5.String())
+	fmt.Printf("Compatibility distance: %f\n", Compatibility(g4, g5, 1.0, 1.0))
+
+	// after 1 mutation (should be less compatible)
+	Mutate(g4, 1.0, 1.0, 1.0)
+	Mutate(g5, 1.0, 1.0, 1.0)
+
+	fmt.Println(g4.String())
+	fmt.Println(g5.String())
+	fmt.Printf("Compatibility distance: %f\n", Compatibility(g4, g5, 1.0, 1.0))
+
+	// after 2 mutation (should be less compatible)
+	Mutate(g4, 1.0, 1.0, 1.0)
+	Mutate(g5, 1.0, 1.0, 1.0)
+
+	fmt.Println(g4.String())
+	fmt.Println(g5.String())
+	fmt.Printf("Compatibility distance: %f\n", Compatibility(g4, g5, 1.0, 1.0))
+
+	// after 3 mutation (should be less compatible)
+	Mutate(g4, 1.0, 1.0, 1.0)
+	Mutate(g5, 1.0, 1.0, 1.0)
+
+	fmt.Println(g4.String())
+	fmt.Println(g5.String())
+	fmt.Printf("Compatibility distance: %f\n", Compatibility(g4, g5, 1.0, 1.0))
 }
 
 func TestGenome(t *testing.T) {

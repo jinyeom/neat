@@ -33,15 +33,17 @@ for the Go code in this page.
 
 */
 
-package neat
+package cppn
 
 import (
 	"math"
 	"math/rand"
+
+	"github.com/jinyeom/neat"
 )
 
 var (
-	ActivationSet = map[string]*ActivationFunc{
+	ActivationSet = map[string]*neat.ActivationFunc{
 		"identity": Identity(),
 		"sigmoid":  Sigmoid(),
 		"tanh":     Tanh(),
@@ -59,7 +61,7 @@ var (
 
 // RandActivationFunc returns a random activation function from the
 // ActivationSet.
-func RandActivationFunc() *ActivationFunc {
+func RandActivationFunc() *neat.ActivationFunc {
 	afuncNames := make([]string, 0, len(ActivationSet))
 	for name := range ActivationSet {
 		afuncNames = append(afuncNames, name)
@@ -67,15 +69,9 @@ func RandActivationFunc() *ActivationFunc {
 	return ActivationSet[afuncNames[rand.Intn(len(afuncNames))]]
 }
 
-// ActivationFunc is a wrapper type for activation functions.
-type ActivationFunc struct {
-	Name string                  // name of the function
-	Fn   func(x float64) float64 // activation function
-}
-
 // Identity returns the identity function as an activation
 // function. This function is only used for sensor nodes.
-func Identity() *ActivationFunc {
+func Identity() *neat.ActivationFunc {
 	return &ActivationFunc{
 		Name: "Identity",
 		Fn: func(x float64) float64 {
@@ -85,7 +81,7 @@ func Identity() *ActivationFunc {
 }
 
 // Sigmoid returns the sigmoid function as an activation function.
-func Sigmoid() *ActivationFunc {
+func Sigmoid() *neat.ActivationFunc {
 	return &ActivationFunc{
 		Name: "Sigmoid",
 		Fn: func(x float64) float64 {
@@ -95,7 +91,7 @@ func Sigmoid() *ActivationFunc {
 }
 
 // Tanh returns the hyperbolic tangent function as an activation function.
-func Tanh() *ActivationFunc {
+func Tanh() *neat.ActivationFunc {
 	return &ActivationFunc{
 		Name: "Tanh",
 		Fn:   math.Tanh,
@@ -103,7 +99,7 @@ func Tanh() *ActivationFunc {
 }
 
 // Sin returns the sin function as an activation function.
-func Sin() *ActivationFunc {
+func Sin() *neat.ActivationFunc {
 	return &ActivationFunc{
 		Name: "Sine",
 		Fn:   math.Sin,
