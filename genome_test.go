@@ -23,13 +23,11 @@ func GenomeUnitTest() {
 	g1 := NewGenome(1, 3, 1)
 	Mutate(g1, 1.0, 1.0, 1.0)
 	Mutate(g1, 1.0, 1.0, 1.0)
-	Mutate(g1, 1.0, 1.0, 1.0)
 	fmt.Println("Parent 1:")
 	fmt.Println(g1.String())
 
 	// parent 2
 	g2 := NewGenome(2, 3, 1)
-	Mutate(g2, 1.0, 1.0, 1.0)
 	Mutate(g2, 1.0, 1.0, 1.0)
 	Mutate(g2, 1.0, 1.0, 1.0)
 	fmt.Println("Parent 2:")

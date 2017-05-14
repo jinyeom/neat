@@ -61,26 +61,20 @@ type Genome struct {
 // NewGenome returns an instance of initial Genome with fully connected input
 // and output layers.
 func NewGenome(id, numInputs, numOutputs int) *Genome {
-	nodeGenes := make([]*NodeGene, 0, numInputs+numOutputs)
-	connGenes := make([]*ConnGene, 0, numInputs*numOutputs)
-
-	for i := 0; i < numInputs; i++ {
-		inputNode := NewNodeGene(i, "input", ActivationSet["identity"])
-		nodeGenes = append(nodeGenes, inputNode)
-	}
-	for i := numInputs; i < numInputs+numOutputs; i++ {
-		outputNode := NewNodeGene(i, "output", ActivationSet["sigmoid"])
-		nodeGenes = append(nodeGenes, outputNode)
-
-		for j := 0; j < numInputs; j++ {
-			conn := NewConnGene(nodeGenes[j], outputNode, rand.NormFloat64()*6.0)
-			connGenes = append(connGenes, conn)
-		}
-	}
-
 	return &Genome{
 		ID: id,
 		NodeGenes: func() []*NodeGene {
+			nodeGenes := make([]*NodeGene, 0, numInputs+numOutputs)
+
+			for i := 0; i < numInputs; i++ {
+				inputNode := NewNodeGene(i, "input", ActivationSet["identity"])
+				nodeGenes = append(nodeGenes, inputNode)
+			}
+			for i := numInputs; i < numInputs+numOutputs; i++ {
+				outputNode := NewNodeGene(i, "output", ActivationSet["sigmoid"])
+				nodeGenes = append(nodeGenes, outputNode)
+			}
+			return nodeGenes
 		}(),
 		ConnGenes: make([]*ConnGene, 0),
 	}
@@ -190,4 +184,60 @@ func Crossover(id int, g0, g1 *Genome) *Genome {
 		NodeGenes: nodeGenes,
 		ConnGenes: connGenes,
 	}
+}
+
+// Compatibility computes the compatibility distance between two argument
+// genomes.
+//
+// Compatibility distance of two genomes is utilized for differentiating their
+// species during speciation. The distance is computed as follows:
+//
+//	d = c0 * U + c1 * W
+//
+// c0, c1, are hyperparameter coefficients, and U, W are respectively number of
+// unmatching genes, and the average weight differences of matching genes. This
+// approach is a slightly modified version of Dr. Kenneth Stanley's original
+// approach in which unmatching genes are separated into excess and disjoint
+// genes.
+func Compatibility(g0, g1 *Genome, c0, c1 float64) float64 {
+	innov0 := make(map[[2]int]*ConnGene) // innovations in g0
+	innov1 := make(map[[2]int]*ConnGene) // innovations in g1
+
+	for _, conn := range g0.ConnGenes {
+		innov0[[2]int{conn.From.ID, conn.To.ID}] = conn
+	}
+
+	for _, conn := range g1.ConnGenes {
+		innov1[[2]int{conn.From.ID, conn.To.ID}] = conn
+	}
+
+	matching := make(map[*ConnGene]*ConnGene) // pairs of matching genes
+	unmatchingCount := 0                      // unmatching gene counter
+
+	// look for matching/unmatching genes from g1's innovations; if a connection
+	// in g0 is not one of g1's innovations, increment unmatching counter.
+	// Otherwise, add the connection to matching
+	for _, conn := range g0.ConnGenes {
+		innov := innov1[[2]int{conn.From.ID, conn.To.ID}]
+		if innov == nil {
+			unmatchingCount++
+		} else {
+			matching[innov] = conn
+		}
+	}
+
+	// repeat for g0's innovations, to count unmatching connection genes for g1.
+	for _, conn := range g1.ConnGenes {
+		if innov0[[2]int{conn.From.ID, conn.To.ID}] == nil {
+			unmatchingCount++
+		}
+	}
+
+	// compute average weight differences of matching genes
+	diffSum := 0.0
+	matchingCount := len(matching)
+	for conn0, conn1 := range matching {
+		diffSum += math.Abs(conn0.Weight - conn1.Weight)
+	}
+	return c0*float64(unmatchingCount) + c1*(diffSum/float64(matchingCount))
 }
