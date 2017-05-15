@@ -22,6 +22,7 @@ type Config struct {
 	PopulationSize  int     `json:"populationSize"`  // size of population
 	InitFitness     float64 `json:"initFitness"`     // initial fitness score
 	MinimizeFitness bool    `json:"minimizeFitness"` // true if minimizing fitness
+	SurvivalRate    float64 `json:"survivalCutoff"`  // survival rate
 
 	// mutation rates settings
 	RatePerturb float64 `json:"ratePerturb"` // mutation by perturbing weights
@@ -69,6 +70,7 @@ func (c *Config) Summarize() {
 	fmt.Fprintf(w, "+ Population size\t%d\t\n", c.PopulationSize)
 	fmt.Fprintf(w, "+ Initial fitness score\t%.3f\t\n", c.InitFitness)
 	fmt.Fprintf(w, "+ Fitness is being minimized\t%t\t\n", c.MinimizeFitness)
+	fmt.Fprintf(w, "+ Rate of survival each generation\t%t\t\n", c.SurvivalRate)
 	fmt.Fprintf(w, "--------------------------------------------------\n")
 	fmt.Fprintf(w, "Mutation settings\t\n")
 	fmt.Fprintf(w, "--------------------------------------------------\n")
@@ -87,30 +89,40 @@ func (c *Config) Summarize() {
 
 // NEAT is the implementation of NeuroEvolution of Augmenting Topology (NEAT).
 type NEAT struct {
-	nextGenomeID int // genome ID that is assigned to a newly created genome
-
 	Config     *Config        // configuration
 	Population []*Genome      // population of genome
 	Species    []*Species     // subpopulations of genomes grouped by species
 	Evaluation EvaluationFunc // evaluation function
 	Best       *Genome        // best performing genome
+
+	nextGenomeID  int // genome ID that is assigned to a newly created genome
+	nextSpeciesID int // species ID that is assigned to a newly created species
 }
 
 // New creates a new instance of NEAT with provided argument configuration and
 // an evaluation function.
 func New(config *Config, evaluation EvaluationFunc) *NEAT {
 	nextGenomeID := 0
+	nextSpeciesID := 0
+
 	population := make([]*Genome, config.PopulationSize)
 	for i := 0; i < config.PopulationSize; i++ {
 		population[i] = NewGenome(nextGenomeID, config.NumInputs, config.NumOutputs)
 		nextGenomeID++
 	}
+
+	// initialize the first species with a randomly selected genome
+	s := NewSpecies(nextSpeciesID, population[rand.Intn(len(population))])
+	species := []*Species{s}
+	nextSpeciesID++
+
 	return &NEAT{
-		nextGenomeID: nextGenomeID,
-		Config:       config,
-		Population:   population,
-		Species:      make([]*Species, 0),
-		Evaluation:   evaluation,
+		Config:        config,
+		Population:    population,
+		Species:       species,
+		Evaluation:    evaluation,
+		nextGenomeID:  nextGenomeID,
+		nextSpeciesID: nextSpeciesID,
 	}
 }
 
@@ -132,13 +144,70 @@ func (n *NEAT) evaluateParallel() {
 	wg.Wait()
 }
 
+// inheritParallel performs crossover and mutation within all species in
+// parallel.
+func (n *NEAT) inheritParallel() {
+	runtime.GOMAXPROCS(len(n.Species))
+
+	var wg sync.WaitGroup
+	wg.Add(len(n.Species))
+
+	nextGeneration := struct {
+		sync.Mutex
+		population []*Genome // children genome for the next generation
+	}{population: make([]*Genome, 0, n.Config.PopulationSize)}
+
+	for _, species := range n.Species {
+		go func(s *Species) {
+			// genomes in this species can inherit to the next generation, if two or
+			// more genomes survive in this species.
+			survived := math.Ceil(float64(len(s.Members)) * n.Config.SurvivalRate)
+			if survived > 2 {
+				// determine the method of fitness comparison, and sort the members
+				// based on their fitness.
+				comparisonFunc := func(i, j int) bool {
+					return s.Members[i].Fitness < s.Members[j].Fitness
+				}
+				if !n.Config.MinimizeFitness {
+					comparisonFunc = func(i, j int) bool {
+						return s.Members[i].Fitness > s.Members[j].Fitness
+					}
+				}
+				sort.Slice(s.Members, comparisonFunc)
+
+			}
+		}(species)
+	}
+
+	wg.Wait()
+
+	// update the population with the new generation
+	n.Population = nextGeneration.population
+}
+
 // Run executes evolution.
 func (n *NEAT) Run() {
 	for i := 0; i < n.Config.NumGenerations; i++ {
 		n.evaluateParallel()
 
 		for _, genome := range n.Population {
-			fmt.Println("Genome", genome.ID, "fitness:", genome.Fitness)
+			registered := false
+			for i := 0; i < len(n.Species) && !registered; i++ {
+				dist := Compatibility(species.Representative, genome,
+					n.Config.CoeffUnmatching, n.Config.CoeffMatching)
+
+				if dist < n.Config.DistanceThreshold {
+					n.Species[i].Register(genome, n.Config.MinimizeFitness)
+					registered = true
+				}
+			}
+
+			if !registered {
+				n.Species = append(n.Species, NewSpecies(n.nextSpeciesID, genome))
+				n.nextSpeciesID++
+			}
 		}
+
+		n.inheritParallel()
 	}
 }

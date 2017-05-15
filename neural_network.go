@@ -9,10 +9,10 @@ import (
 type Neuron struct {
 	ID         int                 // neuron ID
 	Type       string              // neuron type
-	Activated  bool                // true if it has been activated
 	Signal     float64             // signal held by this neuron
 	Synapses   map[*Neuron]float64 // synapse from input neurons
 	Activation *ActivationFunc     // activation function
+	activated  bool                // true if it has been activated
 }
 
 // NewNeuron returns a new instance of neuron, given a node gene.
@@ -20,10 +20,10 @@ func NewNeuron(nodeGene *NodeGene) *Neuron {
 	return &Neuron{
 		ID:         nodeGene.ID,
 		Type:       nodeGene.Type,
-		Activated:  false,
 		Signal:     0.0,
 		Synapses:   make(map[*Neuron]float64),
 		Activation: nodeGene.Activation,
+		activated:  false,
 	}
 }
 
@@ -45,10 +45,10 @@ func (n *Neuron) String() string {
 func (n *Neuron) Activate() float64 {
 	// if the neuron's already activated, or it isn't connected from any neurons,
 	// return its current signal.
-	if n.Activated || len(n.Synapses) == 0 {
+	if n.activated || len(n.Synapses) == 0 {
 		return n.Signal
 	}
-	n.Activated = true
+	n.activated = true
 
 	inputSum := 0.0
 	for neuron, weight := range n.Synapses {
@@ -132,7 +132,7 @@ func (n *NeuralNetwork) FeedForward(inputs []float64) ([]float64, error) {
 
 	// reset all neurons
 	for _, neuron := range n.Neurons {
-		neuron.Activated = false
+		neuron.activated = false
 		neuron.Signal = 0.0
 	}
 
