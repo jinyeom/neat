@@ -3,8 +3,11 @@ package neat
 import (
 	"encoding/json"
 	"fmt"
+	"math"
+	"math/rand"
 	"os"
 	"runtime"
+	"sort"
 	"sync"
 	"text/tabwriter"
 	"time"
@@ -162,6 +165,7 @@ func (n *NEAT) inheritParallel() {
 			// genomes in this species can inherit to the next generation, if two or
 			// more genomes survive in this species.
 			survived := math.Ceil(float64(len(s.Members)) * n.Config.SurvivalRate)
+
 			if survived > 2 {
 				// determine the method of fitness comparison, and sort the members
 				// based on their fitness.
@@ -193,7 +197,7 @@ func (n *NEAT) Run() {
 		for _, genome := range n.Population {
 			registered := false
 			for i := 0; i < len(n.Species) && !registered; i++ {
-				dist := Compatibility(species.Representative, genome,
+				dist := Compatibility(n.Species[i].Representative, genome,
 					n.Config.CoeffUnmatching, n.Config.CoeffMatching)
 
 				if dist < n.Config.DistanceThreshold {
@@ -208,6 +212,6 @@ func (n *NEAT) Run() {
 			}
 		}
 
-		n.inheritParallel()
+		//n.inheritParallel()
 	}
 }
