@@ -1,8 +1,8 @@
 {
 	"numInputs": 3,
 	"numOutputs": 1,
-	"numGenerations": 50,
-	"populationSize": 50,
+	"numGenerations": 1,
+	"populationSize": 10,
 	"initFitness": 9999.0,
 	"minimizeFitness": true,
 	"ratePerturb": 0.3,

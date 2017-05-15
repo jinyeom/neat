@@ -17,8 +17,8 @@ func NEATUnitTest() {
 	config.Summarize()
 
 	fmt.Println("\x1b[32m=Testing creating and running NEAT...\x1b[0m")
-	New(config, func(*NeuralNetwork) float64 {
-		return 1.0
+	New(config, func(n *NeuralNetwork) float64 {
+		return rand.Float64()
 	}).Run()
 }
 

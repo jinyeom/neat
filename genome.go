@@ -44,11 +44,11 @@ func NewConnGene(from, to *NodeGene, weight float64) *ConnGene {
 
 // String returns the string representation of this connection.
 func (c *ConnGene) String() string {
-	connectivity := fmt.Sprintf("%.3f", c.Weight)
+	connectivity := fmt.Sprintf("{%.3f}", c.Weight)
 	if c.Disabled {
-		connectivity = "/"
+		connectivity = " / "
 	}
-	return fmt.Sprintf("%s--%s--%s", c.From.String(), connectivity, c.To.String())
+	return fmt.Sprintf("%s-%s->%s", c.From.String(), connectivity, c.To.String())
 }
 
 // Genome encodes the weights and topology of the output network as a collection
@@ -57,6 +57,8 @@ type Genome struct {
 	ID        int         // genome ID
 	NodeGenes []*NodeGene // nodes in the genome
 	ConnGenes []*ConnGene // connections in the genome
+	Fitness   float64     // fitness score
+	evaluated bool        // true if already evaluated
 }
 
 // NewGenome returns an instance of initial Genome with fully connected input
@@ -83,11 +85,21 @@ func NewGenome(id, numInputs, numOutputs int) *Genome {
 
 // String returns the string representation of the genome.
 func (g *Genome) String() string {
-	str := fmt.Sprintf("Genome(%d):\n", g.ID)
+	str := fmt.Sprintf("Genome(%d, %.3f):\n", g.ID, g.Fitness)
 	for _, conn := range g.ConnGenes {
 		str += conn.String() + "\n"
 	}
 	return str[:len(str)-1]
+}
+
+// Evaluate takes an evaluation function and evaluates its fitness. Only perform
+// the evaluation if it hasn't yet.
+func (g *Genome) Evaluate(eval EvaluationFunc) {
+	if g.evaluated {
+		return
+	}
+	g.Fitness = eval(NewNeuralNetwork(g))
+	g.evaluated = true
 }
 
 // Mutate mutates the genome in three ways, by perturbing each connection's

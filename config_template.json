@@ -1,0 +1,14 @@
+{
+	"numInputs": 0,
+	"numOutputs": 0,
+	"numGenerations": 0,
+	"populationSize": 0,
+	"initFitness": 0.0,
+	"minimizeFitness": false,
+	"ratePerturb": 0.0,
+	"rateAddNode": 0.0,
+	"rateAddConn": 0.0,
+	"distanceThreshold": 0.0,
+	"coeffUnmatching": 0.0,
+	"coeffMatching": 0.0
+}

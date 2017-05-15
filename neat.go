@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"runtime"
+	"sync"
 	"text/tabwriter"
+	"time"
 )
 
 // Config consists of all hyperparameter settings for NEAT. It can be imported
@@ -86,21 +89,20 @@ func (c *Config) Summarize() {
 type NEAT struct {
 	nextGenomeID int // genome ID that is assigned to a newly created genome
 
-	Config     *Config             // configuration
-	Population map[*Genome]float64 // population of genome
-	Species    []*Species          // subpopulations of genomes grouped by species
-	Evaluation EvaluationFunc      // evaluation function
-	Best       *Genome             // best performing genome
+	Config     *Config        // configuration
+	Population []*Genome      // population of genome
+	Species    []*Species     // subpopulations of genomes grouped by species
+	Evaluation EvaluationFunc // evaluation function
+	Best       *Genome        // best performing genome
 }
 
 // New creates a new instance of NEAT with provided argument configuration and
 // an evaluation function.
 func New(config *Config, evaluation EvaluationFunc) *NEAT {
 	nextGenomeID := 0
-	population := make(map[*Genome]float64)
+	population := make([]*Genome, config.PopulationSize)
 	for i := 0; i < config.PopulationSize; i++ {
-		g := NewGenome(nextGenomeID, config.NumInputs, config.NumOutputs)
-		population[g] = config.InitFitness
+		population[i] = NewGenome(nextGenomeID, config.NumInputs, config.NumOutputs)
 		nextGenomeID++
 	}
 	return &NEAT{
@@ -112,7 +114,31 @@ func New(config *Config, evaluation EvaluationFunc) *NEAT {
 	}
 }
 
-// Run
-func (n *NEAT) Run() {
+// evaluateParallel evaluates all genomes in the population in parallel.
+func (n *NEAT) evaluateParallel() {
+	runtime.GOMAXPROCS(n.Config.PopulationSize)
 
+	var wg sync.WaitGroup
+	wg.Add(n.Config.PopulationSize)
+
+	for _, genome := range n.Population {
+		go func(genome *Genome, evalfn EvaluationFunc) {
+			defer wg.Done()
+			genome.Evaluate(evalfn)
+		}(genome, n.Evaluation)
+		time.Sleep(time.Millisecond)
+	}
+
+	wg.Wait()
+}
+
+// Run executes evolution.
+func (n *NEAT) Run() {
+	for i := 0; i < n.Config.NumGenerations; i++ {
+		n.evaluateParallel()
+
+		for _, genome := range n.Population {
+			fmt.Println("Genome", genome.ID, "fitness:", genome.Fitness)
+		}
+	}
 }
