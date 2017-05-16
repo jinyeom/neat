@@ -10,7 +10,7 @@ import (
 	"sort"
 	"sync"
 	"text/tabwriter"
-	"time"
+	//"time"
 )
 
 // Config consists of all hyperparameter settings for NEAT. It can be imported
@@ -25,7 +25,7 @@ type Config struct {
 	PopulationSize  int     `json:"populationSize"`  // size of population
 	InitFitness     float64 `json:"initFitness"`     // initial fitness score
 	MinimizeFitness bool    `json:"minimizeFitness"` // true if minimizing fitness
-	SurvivalRate    float64 `json:"survivalCutoff"`  // survival rate
+	SurvivalRate    float64 `json:"survivalRate"`    // survival rate
 
 	// mutation rates settings
 	RatePerturb float64 `json:"ratePerturb"` // mutation by perturbing weights
@@ -73,7 +73,7 @@ func (c *Config) Summarize() {
 	fmt.Fprintf(w, "+ Population size\t%d\t\n", c.PopulationSize)
 	fmt.Fprintf(w, "+ Initial fitness score\t%.3f\t\n", c.InitFitness)
 	fmt.Fprintf(w, "+ Fitness is being minimized\t%t\t\n", c.MinimizeFitness)
-	fmt.Fprintf(w, "+ Rate of survival each generation\t%t\t\n", c.SurvivalRate)
+	fmt.Fprintf(w, "+ Rate of survival each generation\t%.3f\t\n", c.SurvivalRate)
 	fmt.Fprintf(w, "--------------------------------------------------\n")
 	fmt.Fprintf(w, "Mutation settings\t\n")
 	fmt.Fprintf(w, "--------------------------------------------------\n")
@@ -92,6 +92,8 @@ func (c *Config) Summarize() {
 
 // NEAT is the implementation of NeuroEvolution of Augmenting Topology (NEAT).
 type NEAT struct {
+	sync.Mutex
+
 	Config     *Config        // configuration
 	Population []*Genome      // population of genome
 	Species    []*Species     // subpopulations of genomes grouped by species
@@ -137,11 +139,12 @@ func (n *NEAT) evaluateParallel() {
 	wg.Add(n.Config.PopulationSize)
 
 	for _, genome := range n.Population {
-		go func(genome *Genome, evalfn EvaluationFunc) {
+		go func(g *Genome, efn EvaluationFunc) {
 			defer wg.Done()
-			genome.Evaluate(evalfn)
+			g.Evaluate(efn)
 		}(genome, n.Evaluation)
-		time.Sleep(time.Millisecond)
+
+		//time.Sleep(time.Millisecond)
 	}
 
 	wg.Wait()
@@ -162,11 +165,16 @@ func (n *NEAT) inheritParallel() {
 
 	for _, species := range n.Species {
 		go func(s *Species) {
-			// genomes in this species can inherit to the next generation, if two or
-			// more genomes survive in this species.
-			survived := math.Ceil(float64(len(s.Members)) * n.Config.SurvivalRate)
+			defer wg.Done()
 
-			if survived > 2 {
+			// genomes in this species can inherit to the next generation, if two or
+			// more genomes survive in this species, and there is room for more
+			// children, i.e., at least one genome must be eliminated.
+			numSurvived := int(math.Ceil(float64(len(s.Members)) *
+				n.Config.SurvivalRate))
+			numEliminated := len(s.Members) - numSurvived
+
+			if numSurvived > 2 && numEliminated > 0 {
 				// determine the method of fitness comparison, and sort the members
 				// based on their fitness.
 				comparisonFunc := func(i, j int) bool {
@@ -179,6 +187,20 @@ func (n *NEAT) inheritParallel() {
 				}
 				sort.Slice(s.Members, comparisonFunc)
 
+				for i := 0; i < numEliminated; i++ {
+					perm := rand.Perm(numSurvived)
+					parent0 := s.Members[perm[0]]
+					parent1 := s.Members[perm[1]]
+
+					n.Lock()
+					child := Crossover(n.nextGenomeID, parent0, parent1)
+					n.nextGenomeID++
+					n.Unlock()
+
+					nextGeneration.Lock()
+					nextGeneration.population = append(nextGeneration.population, child)
+					nextGeneration.Unlock()
+				}
 			}
 		}(species)
 	}
@@ -190,7 +212,10 @@ func (n *NEAT) inheritParallel() {
 }
 
 // Run executes evolution.
-func (n *NEAT) Run() {
+func (n *NEAT) Run(summarize bool) {
+	if summarize {
+		n.Config.Summarize()
+	}
 	for i := 0; i < n.Config.NumGenerations; i++ {
 		n.evaluateParallel()
 
@@ -212,6 +237,6 @@ func (n *NEAT) Run() {
 			}
 		}
 
-		//n.inheritParallel()
+		n.inheritParallel()
 	}
 }

@@ -1,10 +1,11 @@
 {
 	"numInputs": 3,
 	"numOutputs": 1,
-	"numGenerations": 1,
-	"populationSize": 10,
+	"numGenerations": 100,
+	"populationSize": 5,
 	"initFitness": 9999.0,
 	"minimizeFitness": true,
+	"survivalRate": 0.5,
 	"ratePerturb": 0.3,
 	"rateAddNode": 0.3,
 	"rateAddConn": 0.3,
