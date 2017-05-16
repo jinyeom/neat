@@ -163,6 +163,18 @@ func (n *NEAT) evaluateParallel() {
 func (n *NEAT) inheritSequential() {
 	nextGeneration := make([]*Genome, 0, n.Config.PopulationSize)
 
+	comparisonFunc := func(g []*Genome) func(i, j int) bool {
+		comparison := func(i, j int) bool {
+			return g[i].Fitness < g[j].Fitness
+		}
+		if !n.Config.MinimizeFitness {
+			comparison = func(i, j int) bool {
+				return g[i].Fitness > g[j].Fitness
+			}
+		}
+		return comparison
+	}
+
 	for _, s := range n.Species {
 		// genomes in this species can inherit to the next generation, if two or
 		// more genomes survive in this species, and there is room for more
@@ -172,21 +184,10 @@ func (n *NEAT) inheritSequential() {
 		numEliminated := len(s.Members) - numSurvived
 
 		if numSurvived > 2 && numEliminated > 0 {
-			// determine the method of fitness comparison, and sort the members
-			// based on their fitness.
-			comparisonFunc := func(i, j int) bool {
-				return s.Members[i].Fitness < s.Members[j].Fitness
-			}
-			if !n.Config.MinimizeFitness {
-				comparisonFunc = func(i, j int) bool {
-					return s.Members[i].Fitness > s.Members[j].Fitness
-				}
-			}
-			sort.Slice(s.Members, comparisonFunc)
-
-			// eliminate genomes with low performance
+			sort.Slice(s.Members, comparisonFunc(s.Members))
 			s.Members = s.Members[:numSurvived]
 
+			nextGeneration = append(nextGeneration, s.Members...)
 			for i := 0; i < numEliminated; i++ {
 				perm := rand.Perm(numSurvived)
 				parent0 := s.Members[perm[0]]
@@ -195,7 +196,6 @@ func (n *NEAT) inheritSequential() {
 				child := Crossover(n.nextGenomeID, parent0, parent1)
 				n.nextGenomeID++
 
-				s.Members = append(s.Members, child)
 				nextGeneration = append(nextGeneration, child)
 			}
 		}
@@ -218,6 +218,18 @@ func (n *NEAT) inheritParallel() {
 		population []*Genome // children genome for the next generation
 	}{population: make([]*Genome, 0, n.Config.PopulationSize)}
 
+	comparisonFunc := func(g []*Genome) func(i, j int) bool {
+		comparison := func(i, j int) bool {
+			return g[i].Fitness < g[j].Fitness
+		}
+		if !n.Config.MinimizeFitness {
+			comparison = func(i, j int) bool {
+				return g[i].Fitness > g[j].Fitness
+			}
+		}
+		return comparison
+	}
+
 	for _, species := range n.Species {
 		go func(s *Species) {
 			defer wg.Done()
@@ -230,17 +242,8 @@ func (n *NEAT) inheritParallel() {
 			numEliminated := len(s.Members) - numSurvived
 
 			if numSurvived > 2 && numEliminated > 0 {
-				// determine the method of fitness comparison, and sort the members
-				// based on their fitness.
-				comparisonFunc := func(i, j int) bool {
-					return s.Members[i].Fitness < s.Members[j].Fitness
-				}
-				if !n.Config.MinimizeFitness {
-					comparisonFunc = func(i, j int) bool {
-						return s.Members[i].Fitness > s.Members[j].Fitness
-					}
-				}
-				sort.Slice(s.Members, comparisonFunc)
+				sort.Slice(s.Members, comparisonFunc(s.Members))
+				s.Members = s.Members[:numSurvived]
 
 				for i := 0; i < numEliminated; i++ {
 					perm := rand.Perm(numSurvived)
@@ -303,6 +306,8 @@ func (n *NEAT) Run(verbose bool) {
 				}
 			}
 		}
+
+		fmt.Println("Generation", i, "Number of species:", len(n.Species), "Best score:", n.Best.Fitness)
 	}
 }
 

@@ -6,9 +6,9 @@
 	"initFitness": 9999.0,
 	"minimizeFitness": true,
 	"survivalRate": 0.5,
-	"ratePerturb": 0.2,
-	"rateAddNode": 0.2,
-	"rateAddConn": 0.2,
+	"ratePerturb": 0.5,
+	"rateAddNode": 0.5,
+	"rateAddConn": 0.5,
 	"distanceThreshold": 10.0,
 	"coeffUnmatching": 1.0,
 	"coeffMatching": 1.0
