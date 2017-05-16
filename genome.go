@@ -259,3 +259,8 @@ func Compatibility(g0, g1 *Genome, c0, c1 float64) float64 {
 	}
 	return c0*float64(unmatchingCount) + c1*avgDiff
 }
+
+// ComparisonFunc is a type of function that returns a boolean value that
+// indicates whether the first arugment genome is better than the second one
+// in terms of its fitness.
+type ComparisonFunc func(g0, g1 *Genome) bool

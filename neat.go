@@ -98,6 +98,7 @@ type NEAT struct {
 	Population []*Genome      // population of genome
 	Species    []*Species     // subpopulations of genomes grouped by species
 	Evaluation EvaluationFunc // evaluation function
+	Comparison ComparisonFunc // comparison function
 	Best       *Genome        // best performing genome
 
 	nextGenomeID  int // genome ID that is assigned to a newly created genome
@@ -109,6 +110,15 @@ type NEAT struct {
 func New(config *Config, evaluation EvaluationFunc) *NEAT {
 	nextGenomeID := 0
 	nextSpeciesID := 0
+
+	comparison := func(g0, g1 *Genome) bool {
+		return g0.Fitness < g1.Fitness
+	}
+	if !n.Config.MinimizeFitness {
+		comparison = func(g0, g1 *Genome) bool {
+			return g0.Fitness > g1.Fitness
+		}
+	}
 
 	population := make([]*Genome, config.PopulationSize)
 	for i := 0; i < config.PopulationSize; i++ {
@@ -126,19 +136,40 @@ func New(config *Config, evaluation EvaluationFunc) *NEAT {
 		Population:    population,
 		Species:       species,
 		Evaluation:    evaluation,
+		Comparison:    comparison,
 		Best:          population[rand.Intn(len(population))],
 		nextGenomeID:  nextGenomeID,
 		nextSpeciesID: nextSpeciesID,
 	}
 }
 
-func (n *NEAT) evaluate() {
+// Evaluate evaluates fitness of every genome in the population. After the
+// evaluation, their fitness scores are recored in each genome.
+func (n *NEAT) Evaluate() {
 	for _, genome := range n.Population {
 		genome.Evaluate(n.Evaluation)
 	}
 }
 
-func (n *NEAT) speciate() {
+// Speciate performs speciation of each genome. The speciation mechanism is as
+// follows (from http://nn.cs.utexas.edu/downloads/papers/stanley.phd04.pdf):
+//
+//	The Genome Loop:
+//		Take next genome g from P
+//		The Species Loop:
+//			If all species in S have been checked:
+//				create new species snew and place g in it
+//			Else:
+//				get next species s from S
+//				If g is compatible with s:
+//					add g to s
+//			If g has not been placed:
+//				Species Loop
+//		If not all genomes in G have been placed:
+//			Genome Loop
+//		Else STOP
+//
+func (n *NEAT) Speciate() {
 	for _, genome := range n.Population {
 		registered := false
 		for i := 0; i < len(n.Species) && !registered; i++ {
@@ -158,19 +189,14 @@ func (n *NEAT) speciate() {
 	}
 }
 
-func (n *NEAT) inherit() {
-	comparisonFunc := func(g []*Genome) func(i, j int) bool {
-		comparison := func(i, j int) bool {
-			return g[i].Fitness < g[j].Fitness
-		}
-		if !n.Config.MinimizeFitness {
-			comparison = func(i, j int) bool {
-				return g[i].Fitness > g[j].Fitness
-			}
-		}
-		return comparison
-	}
-
+// Inherit performs inheritance of genomes in each species. Inheritance is
+// performed with the assumption of speciation being already executed. The
+// number of eliminated genomes in each species is determined by rate of
+// elimination specified in n.Config; after some number of genomes are
+// eliminated, the empty space is filled with resulting genomes of crossover
+// among surviving genomes. If the number of eliminated genomes is 0 or less
+// then 2 genomes survive, every member survives and mutates.
+func (n *NEAT) Inherit() {
 	nextGeneration := make([]*Genome, 0, n.Config.PopulationSize)
 	for _, s := range n.Species {
 		// genomes in this species can inherit to the next generation, if two or
@@ -181,7 +207,9 @@ func (n *NEAT) inherit() {
 		numEliminated := len(s.Members) - numSurvived
 
 		if numSurvived > 2 && numEliminated > 0 {
-			sort.Slice(s.Members, comparisonFunc(s.Members))
+			sort.Slice(s.Members, func(i, j int) bool {
+				return n.Comparison(s.Members[i], s.Members[j])
+			})
 			s.Members = s.Members[:numSurvived]
 
 			for i := 0; i < numEliminated; i++ {
@@ -225,16 +253,14 @@ func (n *NEAT) Run(verbose bool) {
 	}
 
 	for i := 0; i < n.Config.NumGenerations; i++ {
-		n.evaluate()
-		n.speciate()
-		n.inherit()
+		n.evaluate() // evaluation
+		n.speciate() // speciation
+		n.inherit()  // inheritance
 
 		// update the best genome
 		for _, genome := range n.Population {
-			if genome.Fitness < n.Best.Fitness {
-				if n.Config.MinimizeFitness {
-					n.Best = genome
-				}
+			if n.Comparison(genome, n.Best) {
+				n.Best = genome
 			}
 		}
 
