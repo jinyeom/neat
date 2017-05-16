@@ -8,7 +8,8 @@ package neat
 type Species struct {
 	ID             int       // species ID
 	Stagnation     int       // number of generations of stagnation
-	Representative *Genome   // genome that represents this species
+	Representative *Genome   // genome that represents this species (permanent)
+	Best           *Genome   // best performing genome
 	Members        []*Genome // member genomes
 }
 
@@ -19,22 +20,23 @@ func NewSpecies(id int, g *Genome) *Species {
 		ID:             id,
 		Stagnation:     0,
 		Representative: g,
+		Best:           g,
 		Members:        []*Genome{g},
 	}
 }
 
-// Register adds an argument genome as a new member of this species; in addition,
-// if the new member genome outperforms this species' representative, it becomes
-// the new representative.
+// Register adds an argument genome as a new member of this species; in
+// addition, if the new member genome outperforms this species' best genome, it
+// replaces the best genome in this species.
 func (s *Species) Register(g *Genome, minimizeFitness bool) {
 	s.Members = append(s.Members, g)
 	if minimizeFitness {
-		if g.Fitness < s.Representative.Fitness {
-			s.Representative = g
+		if g.Fitness < s.Best.Fitness {
+			s.Best = g
 		}
 	} else {
-		if g.Fitness > s.Representative.Fitness {
-			s.Representative = g
+		if g.Fitness > s.Best.Fitness {
+			s.Best = g
 		}
 	}
 }
