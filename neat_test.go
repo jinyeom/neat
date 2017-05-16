@@ -64,15 +64,6 @@ func NEATUnitTest() {
 		return score
 	}).Run(true)
 
-	//fmt.Println("=Testing evaluation in sequence...")
-	//for _, genome := range n.Population {
-	//	Mutate(genome, 1.0, 1.0, 1.0)
-	//	Mutate(genome, 1.0, 1.0, 1.0)
-	//}
-	//n.evaluateSequential()
-	//for _, genome := range n.Population {
-	//	fmt.Printf("Genome %d fitness: %.3f\n", genome.ID, genome.Fitness)
-	//}
 }
 
 func TestNEAT(t *testing.T) {

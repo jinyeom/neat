@@ -26,6 +26,7 @@ type Config struct {
 	InitFitness     float64 `json:"initFitness"`     // initial fitness score
 	MinimizeFitness bool    `json:"minimizeFitness"` // true if minimizing fitness
 	SurvivalRate    float64 `json:"survivalRate"`    // survival rate
+	HOFSize         int     `json:"hallOfFameSize"`  // hall of fame size
 
 	// mutation rates settings
 	RatePerturb float64 `json:"ratePerturb"` // mutation by perturbing weights
@@ -74,6 +75,7 @@ func (c *Config) Summarize() {
 	fmt.Fprintf(w, "+ Initial fitness score\t%.3f\t\n", c.InitFitness)
 	fmt.Fprintf(w, "+ Fitness is being minimized\t%t\t\n", c.MinimizeFitness)
 	fmt.Fprintf(w, "+ Rate of survival each generation\t%.3f\t\n", c.SurvivalRate)
+	fmt.Fprintf(w, "+ Size of Hall of Fame\t%d\t\n", c.HOFSize)
 	fmt.Fprintf(w, "--------------------------------------------------\n")
 	fmt.Fprintf(w, "Mutation settings\t\n")
 	fmt.Fprintf(w, "--------------------------------------------------\n")
@@ -99,7 +101,7 @@ type NEAT struct {
 	Species    []*Species     // subpopulations of genomes grouped by species
 	Evaluation EvaluationFunc // evaluation function
 	Comparison ComparisonFunc // comparison function
-	Best       *Genome        // best performing genome
+	HallOfFame *HallOfFame    // best performing genomes
 
 	nextGenomeID  int // genome ID that is assigned to a newly created genome
 	nextSpeciesID int // species ID that is assigned to a newly created species
@@ -137,10 +139,38 @@ func New(config *Config, evaluation EvaluationFunc) *NEAT {
 		Species:       species,
 		Evaluation:    evaluation,
 		Comparison:    comparison,
-		Best:          population[rand.Intn(len(population))],
+		HallOfFame:    NewHallOfFame(config.HOFSize, config.InitFitness),
 		nextGenomeID:  nextGenomeID,
 		nextSpeciesID: nextSpeciesID,
 	}
+}
+
+// Summarize summarizes current state of evolution process.
+func (n *NEAT) Summarize(gen int) {
+	// summary template
+	tmpl := "Gen. %4d | Num. Species: %4d | Best Fitness: %.3f | " +
+		"Avg. Fitness: %.3f"
+
+	// average fitness of this generation
+	avgFitness := 0.0
+	for _, genome := range n.Population {
+		avgFitness += genome.Fitness
+	}
+	avgFitness /= float64(n.Config.PopulationSize)
+
+	// compose each line of summary and the spacing of separating line
+	str := fmt.Sprintf(tmpl, gen, len(n.Species),
+		n.HallOfFame.BestScore(), avgFitness)
+	spacing := int(math.Max(float64(len(str)), 80.0))
+
+	for i := 0; i < spacing; i++ {
+		fmt.Printf("-")
+	}
+	fmt.Printf("\n%s\n", str)
+	for i := 0; i < spacing; i++ {
+		fmt.Printf("-")
+	}
+	fmt.Println()
 }
 
 // Evaluate evaluates fitness of every genome in the population. After the
@@ -189,14 +219,14 @@ func (n *NEAT) Speciate() {
 	}
 }
 
-// Inherit performs inheritance of genomes in each species. Inheritance is
-// performed with the assumption of speciation being already executed. The
+// Reproduce performs reproduction of genomes in each species. Reproduction is
+// performed under the assumption of speciation being already executed. The
 // number of eliminated genomes in each species is determined by rate of
 // elimination specified in n.Config; after some number of genomes are
 // eliminated, the empty space is filled with resulting genomes of crossover
 // among surviving genomes. If the number of eliminated genomes is 0 or less
 // then 2 genomes survive, every member survives and mutates.
-func (n *NEAT) Inherit() {
+func (n *NEAT) Reproduce() {
 	nextGeneration := make([]*Genome, 0, n.Config.PopulationSize)
 	for _, s := range n.Species {
 		// genomes in this species can inherit to the next generation, if two or
@@ -253,19 +283,18 @@ func (n *NEAT) Run(verbose bool) {
 	}
 
 	for i := 0; i < n.Config.NumGenerations; i++ {
-		n.Evaluate() // evaluation
-		n.Speciate() // speciation
-		n.Inherit()  // inheritance
+		n.Evaluate()  // evaluation
+		n.Speciate()  // speciation
+		n.Reproduce() // reproduction
 
 		// update the best genome
 		for _, genome := range n.Population {
-			if n.Comparison(genome, n.Best) {
-				n.Best = genome
-			}
+			n.HallOfFame.Update(genome, n.Comparison)
 		}
 
-		fmt.Printf("Generation %d Number of species: %d, Best: %f\n",
-			i, len(n.Species), n.Best.Fitness)
+		if verbose {
+			n.Summarize(i)
+		}
 	}
 }
 
@@ -379,14 +408,5 @@ func (n *NEAT) RunParallel(summarize bool) {
 		}
 
 		n.inheritParallel()
-
-		// update the best genome
-		for _, genome := range n.Population {
-			if genome.Fitness < n.Best.Fitness {
-				if n.Config.MinimizeFitness {
-					n.Best = genome
-				}
-			}
-		}
 	}
 }

@@ -6,6 +6,7 @@
 	"initFitness": 9999.0,
 	"minimizeFitness": true,
 	"survivalRate": 0.5,
+	"hallOfFameSize": 10,
 	"ratePerturb": 0.2,
 	"rateAddNode": 0.2,
 	"rateAddConn": 0.2,

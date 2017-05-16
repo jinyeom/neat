@@ -55,6 +55,7 @@ func (c *ConnGene) String() string {
 // of nodes and connection genes.
 type Genome struct {
 	ID        int         // genome ID
+	SpeciesID int         // genome's species ID
 	NodeGenes []*NodeGene // nodes in the genome
 	ConnGenes []*ConnGene // connections in the genome
 	Fitness   float64     // fitness score
@@ -65,7 +66,8 @@ type Genome struct {
 // and output layers.
 func NewGenome(id, numInputs, numOutputs int) *Genome {
 	return &Genome{
-		ID: id,
+		ID:        id,
+		SpeciesID: -1,
 		NodeGenes: func() []*NodeGene {
 			nodeGenes := make([]*NodeGene, 0, numInputs+numOutputs)
 

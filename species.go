@@ -17,6 +17,7 @@ type Species struct {
 // NewSpecies creates and returns a new instance of Species, given an initial
 // genome that will also become the new species' representative.
 func NewSpecies(id int, g *Genome) *Species {
+	g.SpeciesID = id
 	return &Species{
 		ID:             id,
 		Stagnation:     0,
@@ -32,6 +33,7 @@ func NewSpecies(id int, g *Genome) *Species {
 // replaces the best genome in this species.
 func (s *Species) Register(g *Genome, minimizeFitness bool) {
 	s.Members = append(s.Members, g)
+	g.SpeciesID = s.ID
 	if minimizeFitness {
 		if g.Fitness < s.Best.Fitness {
 			s.Best = g
