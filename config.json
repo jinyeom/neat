@@ -1,15 +1,15 @@
 {
 	"numInputs": 3,
 	"numOutputs": 1,
-	"numGenerations": 20,
-	"populationSize": 20,
+	"numGenerations": 50,
+	"populationSize": 100,
 	"initFitness": 9999.0,
 	"minimizeFitness": true,
 	"survivalRate": 0.5,
-	"ratePerturb": 0.5,
-	"rateAddNode": 0.5,
-	"rateAddConn": 0.5,
-	"distanceThreshold": 10.0,
+	"ratePerturb": 0.2,
+	"rateAddNode": 0.2,
+	"rateAddConn": 0.2,
+	"distanceThreshold": 20.0,
 	"coeffUnmatching": 1.0,
 	"coeffMatching": 1.0
 }

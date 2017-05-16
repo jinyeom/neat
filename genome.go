@@ -154,7 +154,7 @@ func Mutate(g *Genome, ratePerturb, rateAddNode, rateAddConn float64) {
 // innovations. Then, as the other parent genome's connections are added, it
 // checks if each connection already exists; if it does, swap with the other
 // parent's connection by 50% chance. Otherwise, append the new connection.
-func Crossover(id int, g0, g1 *Genome) *Genome {
+func Crossover(id int, g0, g1 *Genome, initFitness float64) *Genome {
 	innovations := make(map[[2]int]*ConnGene)
 	for _, conn := range g0.ConnGenes {
 		innovations[[2]int{conn.From.ID, conn.To.ID}] = conn
@@ -196,6 +196,7 @@ func Crossover(id int, g0, g1 *Genome) *Genome {
 		ID:        id,
 		NodeGenes: nodeGenes,
 		ConnGenes: connGenes,
+		Fitness:   initFitness,
 	}
 }
 

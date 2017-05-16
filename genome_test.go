@@ -31,7 +31,7 @@ func GenomeUnitTest() {
 	fmt.Println("Parent 2:")
 	fmt.Println(g2.String())
 
-	g3 := Crossover(3, g1, g2)
+	g3 := Crossover(3, g1, g2, 0.0)
 	fmt.Println("Child:")
 	fmt.Println(g3.String())
 
