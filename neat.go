@@ -114,7 +114,7 @@ func New(config *Config, evaluation EvaluationFunc) *NEAT {
 	comparison := func(g0, g1 *Genome) bool {
 		return g0.Fitness < g1.Fitness
 	}
-	if !n.Config.MinimizeFitness {
+	if !config.MinimizeFitness {
 		comparison = func(g0, g1 *Genome) bool {
 			return g0.Fitness > g1.Fitness
 		}
@@ -253,9 +253,9 @@ func (n *NEAT) Run(verbose bool) {
 	}
 
 	for i := 0; i < n.Config.NumGenerations; i++ {
-		n.evaluate() // evaluation
-		n.speciate() // speciation
-		n.inherit()  // inheritance
+		n.Evaluate() // evaluation
+		n.Speciate() // speciation
+		n.Inherit()  // inheritance
 
 		// update the best genome
 		for _, genome := range n.Population {
