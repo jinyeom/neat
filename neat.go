@@ -26,6 +26,7 @@ type Config struct {
 	InitFitness     float64 `json:"initFitness"`     // initial fitness score
 	MinimizeFitness bool    `json:"minimizeFitness"` // true if minimizing fitness
 	SurvivalRate    float64 `json:"survivalRate"`    // survival rate
+	StagnationLimit int     `json:"stagnationLimit"` // limit of stagnation
 	HOFSize         int     `json:"hallOfFameSize"`  // hall of fame size
 
 	// mutation rates settings
@@ -75,6 +76,7 @@ func (c *Config) Summarize() {
 	fmt.Fprintf(w, "+ Initial fitness score\t%.3f\t\n", c.InitFitness)
 	fmt.Fprintf(w, "+ Fitness is being minimized\t%t\t\n", c.MinimizeFitness)
 	fmt.Fprintf(w, "+ Rate of survival each generation\t%.3f\t\n", c.SurvivalRate)
+	fmt.Fprintf(w, "+ Limit of species' stagnation\t%.3f\t\n", c.StagnationLimit)
 	fmt.Fprintf(w, "+ Size of Hall of Fame\t%d\t\n", c.HOFSize)
 	fmt.Fprintf(w, "--------------------------------------------------\n")
 	fmt.Fprintf(w, "Mutation settings\t\n")
@@ -283,17 +285,17 @@ func (n *NEAT) Run(verbose bool) {
 	}
 
 	for i := 0; i < n.Config.NumGenerations; i++ {
-		n.Evaluate()  // evaluation
-		n.Speciate()  // speciation
-		n.Reproduce() // reproduction
+		n.Evaluate()
+		if verbose {
+			n.Summarize(i)
+		}
+
+		n.Speciate()
+		n.Reproduce()
 
 		// update the best genome
 		for _, genome := range n.Population {
 			n.HallOfFame.Update(genome, n.Comparison)
-		}
-
-		if verbose {
-			n.Summarize(i)
 		}
 	}
 }
