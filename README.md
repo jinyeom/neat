@@ -45,12 +45,12 @@ start experiment with NEAT. Below is an example XOR experiment.
 package main
 
 import (
-		"log"
-		"math"
+	"log"
+	"math"
 
-		// Import NEAT package after installing the package through
-		// the instruction provided above.
-    "github.com/jinyeom/neat"
+	// Import NEAT package after installing the package through
+	// the instruction provided above.
+	"github.com/jinyeom/neat"
 )
 
 func main() {
