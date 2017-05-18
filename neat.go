@@ -151,8 +151,8 @@ func New(config *Config, evaluation EvaluationFunc) *NEAT {
 // Summarize summarizes current state of evolution process.
 func (n *NEAT) Summarize(gen int) {
 	// summary template
-	tmpl := "Gen. %4d | Num. Species: %4d | Best Fitness: %.3f | " +
-		"Avg. Fitness: %.3f"
+	tmpl := "Gen. %4d | Num. Species: %4d | Best Fitness: %.4f | " +
+		"Avg. Fitness: %.4f"
 
 	// average fitness of this generation
 	avgFitness := 0.0
@@ -179,8 +179,8 @@ func (n *NEAT) Summarize(gen int) {
 // Evaluate evaluates fitness of every genome in the population. After the
 // evaluation, their fitness scores are recored in each genome.
 func (n *NEAT) Evaluate() {
-	for _, genome := range n.Population {
-		genome.Evaluate(n.Evaluation)
+	for i := range n.Population {
+		n.Population[i].Evaluate(n.Evaluation)
 	}
 
 	// explicit fitness sharing
@@ -224,7 +224,7 @@ func (n *NEAT) Speciate() {
 			dist := Compatibility(n.Species[i].Representative, genome,
 				n.Config.CoeffUnmatching, n.Config.CoeffMatching)
 
-			if dist < n.Config.DistanceThreshold {
+			if dist <= n.Config.DistanceThreshold {
 				n.Species[i].Register(genome, n.Config.MinimizeFitness)
 				registered = true
 			}
@@ -307,6 +307,7 @@ func (n *NEAT) Run(verbose bool) {
 			n.Summarize(i)
 		}
 
+		// speciate genomes and reproduce children genomes
 		n.Speciate()
 		n.Reproduce()
 
@@ -402,7 +403,7 @@ func (n *NEAT) RunParallel(summarize bool) {
 				dist := Compatibility(n.Species[i].Representative, genome,
 					n.Config.CoeffUnmatching, n.Config.CoeffMatching)
 
-				if dist < n.Config.DistanceThreshold {
+				if dist <= n.Config.DistanceThreshold {
 					n.Species[i].Register(genome, n.Config.MinimizeFitness)
 					registered = true
 				}
