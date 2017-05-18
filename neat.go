@@ -183,14 +183,18 @@ func (n *NEAT) Evaluate() {
 		genome.Evaluate(n.Evaluation)
 	}
 
+	// explicit fitness sharing
 	for i, genome0 := range n.Population {
-		adjusted := genome0.Fitness
 		adjustment := 0.0
-		for _, genome1 := range append(n.Population[:i], n.Population[i+1:]) {
+		for _, genome1 := range append(n.Population[:i], n.Population[i+1:]...) {
 			if Compatibility(genome0, genome1, n.Config.CoeffUnmatching,
 				n.Config.CoeffMatching) <= n.Config.DistanceThreshold {
 				adjustment += 1.0
 			}
+		}
+
+		if adjustment != 0.0 {
+			genome0.Fitness /= adjustment
 		}
 	}
 }
@@ -304,7 +308,6 @@ func (n *NEAT) Run(verbose bool) {
 		}
 
 		n.Speciate()
-		n.ExplicitFitnessShare()
 		n.Reproduce()
 
 		// update the best genome

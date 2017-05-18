@@ -5,12 +5,12 @@
 	"populationSize": 50,
 	"initFitness": 9999.0,
 	"minimizeFitness": true,
-	"survivalRate": 0.1,
+	"survivalRate": 0.2,
 	"hallOfFameSize": 10,
 	"ratePerturb": 0.1,
 	"rateAddNode": 0.1,
 	"rateAddConn": 0.1,
-	"distanceThreshold": 50.0,
+	"distanceThreshold": 5.0,
 	"coeffUnmatching": 1.0,
-	"coeffMatching": 1.0
+	"coeffMatching": 0.5
 }
