@@ -104,6 +104,7 @@ type NEAT struct {
 	Evaluation EvaluationFunc // evaluation function
 	Comparison ComparisonFunc // comparison function
 	HallOfFame *HallOfFame    // best performing genomes
+	Statistics *Statistics    // statistics
 
 	nextGenomeID  int // genome ID that is assigned to a newly created genome
 	nextSpeciesID int // species ID that is assigned to a newly created species
@@ -142,6 +143,7 @@ func New(config *Config, evaluation EvaluationFunc) *NEAT {
 		Evaluation:    evaluation,
 		Comparison:    comparison,
 		HallOfFame:    NewHallOfFame(config.HOFSize, config.InitFitness),
+		Statistics:    NewStatistics(config.NumGenerations),
 		nextGenomeID:  nextGenomeID,
 		nextSpeciesID: nextSpeciesID,
 	}
@@ -181,6 +183,14 @@ func (n *NEAT) Evaluate() {
 	for _, genome := range n.Population {
 		genome.Evaluate(n.Evaluation)
 	}
+}
+
+// ExplicitFitnessShare reevaluates each genome's fitness score with explicitly
+// shared fitness.
+func (n *NEAT) ExplicitFitnessShare() {
+
+	// to be implemented
+
 }
 
 // Speciate performs speciation of each genome. The speciation mechanism is as
@@ -286,11 +296,13 @@ func (n *NEAT) Run(verbose bool) {
 
 	for i := 0; i < n.Config.NumGenerations; i++ {
 		n.Evaluate()
+		n.Statistics.Update(i, n)
 		if verbose {
-			n.Summarize(i)
+			n.Statistics.Summarize(i)
 		}
 
 		n.Speciate()
+		n.ExplicitFitnessShare()
 		n.Reproduce()
 
 		// update the best genome
@@ -305,15 +317,13 @@ func (n *NEAT) evaluateParallel() {
 	runtime.GOMAXPROCS(n.Config.PopulationSize)
 
 	var wg sync.WaitGroup
-	wg.Add(n.Config.PopulationSize)
 
 	for _, genome := range n.Population {
+		wg.Add(1)
 		go func(g *Genome, efn EvaluationFunc) {
 			defer wg.Done()
-			genome.Evaluate(n.Evaluation)
+			g.Evaluate(n.Evaluation)
 		}(genome, n.Evaluation)
-
-		time.Sleep(time.Millisecond)
 	}
 
 	wg.Wait()
@@ -325,26 +335,14 @@ func (n *NEAT) inheritParallel() {
 	runtime.GOMAXPROCS(len(n.Species))
 
 	var wg sync.WaitGroup
-	wg.Add(len(n.Species))
 
 	nextGeneration := struct {
 		sync.Mutex
 		population []*Genome // children genome for the next generation
 	}{population: make([]*Genome, 0, n.Config.PopulationSize)}
 
-	comparisonFunc := func(g []*Genome) func(i, j int) bool {
-		comparison := func(i, j int) bool {
-			return g[i].Fitness < g[j].Fitness
-		}
-		if !n.Config.MinimizeFitness {
-			comparison = func(i, j int) bool {
-				return g[i].Fitness > g[j].Fitness
-			}
-		}
-		return comparison
-	}
-
 	for _, species := range n.Species {
+		wg.Add(1)
 		go func(s *Species) {
 			defer wg.Done()
 
@@ -356,7 +354,9 @@ func (n *NEAT) inheritParallel() {
 			numEliminated := len(s.Members) - numSurvived
 
 			if numSurvived > 2 && numEliminated > 0 {
-				sort.Slice(s.Members, comparisonFunc(s.Members))
+				sort.Slice(s.Members, func(i, j int) bool {
+					return n.Comparison(s.Members[i], s.Members[j])
+				})
 				s.Members = s.Members[:numSurvived]
 
 				for i := 0; i < numEliminated; i++ {
