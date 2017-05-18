@@ -182,14 +182,17 @@ func (n *NEAT) Evaluate() {
 	for _, genome := range n.Population {
 		genome.Evaluate(n.Evaluation)
 	}
-}
 
-// ExplicitFitnessShare reevaluates each genome's fitness score with explicitly
-// shared fitness.
-func (n *NEAT) ExplicitFitnessShare() {
-
-	// to be implemented
-
+	for i, genome0 := range n.Population {
+		adjusted := genome0.Fitness
+		adjustment := 0.0
+		for _, genome1 := range append(n.Population[:i], n.Population[i+1:]) {
+			if Compatibility(genome0, genome1, n.Config.CoeffUnmatching,
+				n.Config.CoeffMatching) <= n.Config.DistanceThreshold {
+				adjustment += 1.0
+			}
+		}
+	}
 }
 
 // Speciate performs speciation of each genome. The speciation mechanism is as

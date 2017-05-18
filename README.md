@@ -57,7 +57,7 @@ func main() {
 
 	// First, create a new instance of Config from the JSON file created above.
 	// If there's a file import error, the program will crash.
-	config, err := NewConfigJSON("config.json")
+	config, err := neat.NewConfigJSON("config.json")
 	if err != nil{
 		log.Fatal(err)
 	}

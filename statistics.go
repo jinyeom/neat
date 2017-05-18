@@ -44,7 +44,3 @@ func (s *Statistics) Update(currGen int, n *NEAT) {
 		return avg / float64(n.Config.PopulationSize)
 	}()
 }
-
-func (s *Statistics) ExportChart() {
-
-}

@@ -9,7 +9,6 @@ type Species struct {
 	ID             int       // species ID
 	Stagnation     int       // number of generations of stagnation
 	Representative *Genome   // genome that represents this species (permanent)
-	Best           *Genome   // best performing genome
 	BestFitness    float64   // best fitness score in this species
 	Members        []*Genome // member genomes
 }
@@ -22,7 +21,6 @@ func NewSpecies(id int, g *Genome) *Species {
 		ID:             id,
 		Stagnation:     0,
 		Representative: g,
-		Best:           g,
 		BestFitness:    g.Fitness,
 		Members:        []*Genome{g},
 	}
@@ -35,14 +33,12 @@ func (s *Species) Register(g *Genome, minimizeFitness bool) {
 	s.Members = append(s.Members, g)
 	g.SpeciesID = s.ID
 	if minimizeFitness {
-		if g.Fitness < s.Best.Fitness {
-			s.Best = g
+		if g.Fitness < s.BestFitness {
 			s.BestFitness = g.Fitness
 			s.Stagnation = 0
 		}
 	} else {
-		if g.Fitness > s.Best.Fitness {
-			s.Best = g
+		if g.Fitness > s.BestFitness {
 			s.BestFitness = g.Fitness
 			s.Stagnation = 0
 		}
@@ -52,6 +48,4 @@ func (s *Species) Register(g *Genome, minimizeFitness bool) {
 // Flush empties the species membership, except for its representative.
 func (s *Species) Flush() {
 	s.Members = []*Genome{}
-	s.Best = s.Representative
-	s.BestFitness = s.Representative.Fitness
 }
