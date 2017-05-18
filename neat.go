@@ -10,7 +10,6 @@ import (
 	"sort"
 	"sync"
 	"text/tabwriter"
-	"time"
 )
 
 // Config consists of all hyperparameter settings for NEAT. It can be imported
@@ -76,7 +75,7 @@ func (c *Config) Summarize() {
 	fmt.Fprintf(w, "+ Initial fitness score\t%.3f\t\n", c.InitFitness)
 	fmt.Fprintf(w, "+ Fitness is being minimized\t%t\t\n", c.MinimizeFitness)
 	fmt.Fprintf(w, "+ Rate of survival each generation\t%.3f\t\n", c.SurvivalRate)
-	fmt.Fprintf(w, "+ Limit of species' stagnation\t%.3f\t\n", c.StagnationLimit)
+	fmt.Fprintf(w, "+ Limit of species' stagnation\t%d\t\n", c.StagnationLimit)
 	fmt.Fprintf(w, "+ Size of Hall of Fame\t%d\t\n", c.HOFSize)
 	fmt.Fprintf(w, "--------------------------------------------------\n")
 	fmt.Fprintf(w, "Mutation settings\t\n")
@@ -298,7 +297,7 @@ func (n *NEAT) Run(verbose bool) {
 		n.Evaluate()
 		n.Statistics.Update(i, n)
 		if verbose {
-			n.Statistics.Summarize(i)
+			n.Summarize(i)
 		}
 
 		n.Speciate()

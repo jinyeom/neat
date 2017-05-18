@@ -6,7 +6,7 @@ import (
 
 // Statistics is a data structure that records statistical information of each
 // generation during the evolutionary process.
-type Statitstics struct {
+type Statistics struct {
 	NumSpecies []int     // number of species in each generation
 	MinFitness []float64 // minimum fitness in each generation
 	MaxFitness []float64 // maximum fitness in each generation
@@ -28,11 +28,11 @@ func (s *Statistics) Update(currGen int, n *NEAT) {
 	s.NumSpecies[currGen] = len(n.Species)
 
 	// mininum and maximum
-	MinFitness[currGen] = n.Population[0].Fitness
-	MaxFitness[currGen] = n.Population[0].Fitness
+	s.MinFitness[currGen] = n.Population[0].Fitness
+	s.MaxFitness[currGen] = n.Population[0].Fitness
 	for _, genome := range n.Population {
-		MinFitness[currGen] = math.Min(genome.Fitness, MinFitness[currGen])
-		MaxFitness[currGen] = math.Max(genome.Fitness, MinFitness[currGen])
+		s.MinFitness[currGen] = math.Min(genome.Fitness, s.MinFitness[currGen])
+		s.MaxFitness[currGen] = math.Max(genome.Fitness, s.MinFitness[currGen])
 	}
 
 	// average fitness
