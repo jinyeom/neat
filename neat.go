@@ -253,50 +253,61 @@ func (n *NEAT) Speciate() {
 // among surviving genomes. If the number of eliminated genomes is 0 or less
 // then 2 genomes survive, every member survives and mutates.
 func (n *NEAT) Reproduce() {
+	runtime.GOMAXPROCS(len(n.Species))
+
 	nextGeneration := make([]*Genome, 0, n.Config.PopulationSize)
-	for _, s := range n.Species {
-		// genomes in this species can inherit to the next generation, if two or
-		// more genomes survive in this species, and there is room for more
-		// children, i.e., at least one genome must be eliminated.
-		numSurvived := int(math.Ceil(float64(len(s.Members)) *
-			n.Config.SurvivalRate))
-		numEliminated := len(s.Members) - numSurvived
 
-		if numSurvived > 2 && numEliminated > 0 {
-			sort.Slice(s.Members, func(i, j int) bool {
-				return n.Comparison(s.Members[i], s.Members[j])
-			})
-			s.Members = s.Members[:numSurvived]
+	var wg sync.WaitGroup
+	for _, species := range n.Species {
+		wg.Add(1)
+		go func(s *Species) {
+			defer wg.Done()
 
-			for i := 0; i < numEliminated; i++ {
-				perm := rand.Perm(numSurvived)
-				p0 := s.Members[perm[0]] // parent 0
-				p1 := s.Members[perm[1]] // parent 1
+			// genomes in this species can inherit to the next generation, if two or
+			// more genomes survive in this species, and there is room for more
+			// children, i.e., at least one genome must be eliminated.
+			numSurvived := int(math.Ceil(float64(len(s.Members)) *
+				n.Config.SurvivalRate))
+			numEliminated := len(s.Members) - numSurvived
 
-				child := Crossover(n.nextGenomeID, p0, p1, n.Config.InitFitness)
-				Mutate(child, n.Config.RatePerturb,
-					n.Config.RateAddNode, n.Config.RateAddConn)
-				n.nextGenomeID++
+			if numSurvived > 2 && numEliminated > 0 {
+				sort.Slice(s.Members, func(i, j int) bool {
+					return n.Comparison(s.Members[i], s.Members[j])
+				})
+				s.Members = s.Members[:numSurvived]
 
-				nextGeneration = append(nextGeneration, child)
+				for i := 0; i < numEliminated; i++ {
+					perm := rand.Perm(numSurvived)
+					p0 := s.Members[perm[0]] // parent 0
+					p1 := s.Members[perm[1]] // parent 1
+
+					child := Crossover(n.nextGenomeID, p0, p1, n.Config.InitFitness)
+					Mutate(child, n.Config.RatePerturb,
+						n.Config.RateAddNode, n.Config.RateAddConn)
+					n.nextGenomeID++
+
+					nextGeneration = append(nextGeneration, child)
+				}
+
+				for _, genome := range s.Members {
+					Mutate(genome, n.Config.RatePerturb,
+						n.Config.RateAddNode, n.Config.RateAddConn)
+					nextGeneration = append(nextGeneration, genome)
+				}
+			} else {
+				// otherwise, they all survive, and mutate.
+				for _, genome := range s.Members {
+					Mutate(genome, n.Config.RatePerturb,
+						n.Config.RateAddNode, n.Config.RateAddConn)
+					nextGeneration = append(nextGeneration, genome)
+				}
 			}
 
-			for _, genome := range s.Members {
-				Mutate(genome, n.Config.RatePerturb,
-					n.Config.RateAddNode, n.Config.RateAddConn)
-				nextGeneration = append(nextGeneration, genome)
-			}
-		} else {
-			// otherwise, they all survive, and mutate.
-			for _, genome := range s.Members {
-				Mutate(genome, n.Config.RatePerturb,
-					n.Config.RateAddNode, n.Config.RateAddConn)
-				nextGeneration = append(nextGeneration, genome)
-			}
-		}
-
-		s.Flush()
+			s.Flush()
+		}(species)
 	}
+
+	wg.Wait()
 
 	// update the population with the new generation
 	n.Population = nextGeneration
@@ -335,87 +346,5 @@ func (n *NEAT) Run(verbose bool) {
 		for _, genome := range n.Population {
 			n.HallOfFame.Update(genome, n.Comparison)
 		}
-	}
-}
-
-// inheritParallel performs crossover and mutation within all species in
-// parallel.
-func (n *NEAT) inheritParallel() {
-	runtime.GOMAXPROCS(len(n.Species))
-
-	var wg sync.WaitGroup
-
-	nextGeneration := struct {
-		sync.Mutex
-		population []*Genome // children genome for the next generation
-	}{population: make([]*Genome, 0, n.Config.PopulationSize)}
-
-	for _, species := range n.Species {
-		wg.Add(1)
-		go func(s *Species) {
-			defer wg.Done()
-
-			// genomes in this species can inherit to the next generation, if two or
-			// more genomes survive in this species, and there is room for more
-			// children, i.e., at least one genome must be eliminated.
-			numSurvived := int(math.Ceil(float64(len(s.Members)) *
-				n.Config.SurvivalRate))
-			numEliminated := len(s.Members) - numSurvived
-
-			if numSurvived > 2 && numEliminated > 0 {
-				sort.Slice(s.Members, func(i, j int) bool {
-					return n.Comparison(s.Members[i], s.Members[j])
-				})
-				s.Members = s.Members[:numSurvived]
-
-				for i := 0; i < numEliminated; i++ {
-					perm := rand.Perm(numSurvived)
-					p0 := s.Members[perm[0]]
-					p1 := s.Members[perm[1]]
-
-					n.Lock()
-					child := Crossover(n.nextGenomeID, p0, p1, n.Config.InitFitness)
-					n.nextGenomeID++
-					n.Unlock()
-
-					nextGeneration.Lock()
-					nextGeneration.population = append(nextGeneration.population, child)
-					nextGeneration.Unlock()
-				}
-			}
-		}(species)
-	}
-
-	wg.Wait()
-
-	// update the population with the new generation
-	n.Population = nextGeneration.population
-}
-
-// RunParallel executes evolution with parallel processing.
-func (n *NEAT) RunParallel(summarize bool) {
-	if summarize {
-		n.Config.Summarize()
-	}
-	for i := 0; i < n.Config.NumGenerations; i++ {
-		for _, genome := range n.Population {
-			registered := false
-			for i := 0; i < len(n.Species) && !registered; i++ {
-				dist := Compatibility(n.Species[i].Representative, genome,
-					n.Config.CoeffUnmatching, n.Config.CoeffMatching)
-
-				if dist <= n.Config.DistanceThreshold {
-					n.Species[i].Register(genome, n.Config.MinimizeFitness)
-					registered = true
-				}
-			}
-
-			if !registered {
-				n.Species = append(n.Species, NewSpecies(n.nextSpeciesID, genome))
-				n.nextSpeciesID++
-			}
-		}
-
-		n.inheritParallel()
 	}
 }
