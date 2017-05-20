@@ -179,9 +179,17 @@ func (n *NEAT) Summarize(gen int) {
 // Evaluate evaluates fitness of every genome in the population. After the
 // evaluation, their fitness scores are recored in each genome.
 func (n *NEAT) Evaluate() {
+	runtime.GOMAXPROCS(n.Config.PopulationSize)
+
+	var wg sync.WaitGroup
 	for i := range n.Population {
-		n.Population[i].Evaluate(n.Evaluation)
+		wg.Add(1)
+		go func(j int) {
+			defer wg.Done()
+			n.Population[j].Evaluate(n.Evaluation)
+		}(i)
 	}
+	wg.Wait()
 
 	// explicit fitness sharing
 	for i, genome0 := range n.Population {
@@ -311,28 +319,23 @@ func (n *NEAT) Run(verbose bool) {
 		n.Speciate()
 		n.Reproduce()
 
+		// eliminate stagnant species
+		if len(n.Species) > 1 {
+			survived := make([]*Species, 0)
+			for j := range n.Species {
+				if n.Species[j].Stagnation <= n.Config.StagnationLimit {
+					n.Species[j].Stagnation++
+					survived = append(survived, n.Species[j])
+				}
+			}
+			n.Species = survived
+		}
+
 		// update the best genome
 		for _, genome := range n.Population {
 			n.HallOfFame.Update(genome, n.Comparison)
 		}
 	}
-}
-
-// evaluateParallel evaluates all genomes in the population in parallel.
-func (n *NEAT) evaluateParallel() {
-	runtime.GOMAXPROCS(n.Config.PopulationSize)
-
-	var wg sync.WaitGroup
-
-	for _, genome := range n.Population {
-		wg.Add(1)
-		go func(g *Genome, efn EvaluationFunc) {
-			defer wg.Done()
-			g.Evaluate(n.Evaluation)
-		}(genome, n.Evaluation)
-	}
-
-	wg.Wait()
 }
 
 // inheritParallel performs crossover and mutation within all species in
@@ -395,8 +398,6 @@ func (n *NEAT) RunParallel(summarize bool) {
 		n.Config.Summarize()
 	}
 	for i := 0; i < n.Config.NumGenerations; i++ {
-		n.evaluateParallel()
-
 		for _, genome := range n.Population {
 			registered := false
 			for i := 0; i < len(n.Species) && !registered; i++ {
