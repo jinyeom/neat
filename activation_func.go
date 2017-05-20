@@ -53,8 +53,8 @@ var (
 // more variety of functions are included in neat/cppn package for applications
 // of CPPN-NEAT.
 type ActivationFunc struct {
-	Name string                  // name of the function
-	Fn   func(x float64) float64 // activation function
+	Name string                  `json:"name"` // name of the function
+	Fn   func(x float64) float64 `json:"-"`    // activation function
 }
 
 // Identity returns the identity function as an activation

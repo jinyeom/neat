@@ -2,6 +2,7 @@ package neat
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"testing"
 )
@@ -67,6 +68,12 @@ func GenomeUnitTest() {
 	fmt.Println(g4.String())
 	fmt.Println(g5.String())
 	fmt.Printf("Compatibility distance: %f\n", Compatibility(g4, g5, 1.0, 1.0))
+
+	fmt.Println("\x1b[32m=Testing JSON export...\x1b[0m")
+	if err := g1.ExportJSON(); err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 func TestGenome(t *testing.T) {

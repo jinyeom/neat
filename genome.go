@@ -1,17 +1,20 @@
 package neat
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"math/rand"
+	"os"
+	"time"
 )
 
 // NodeGene is an implementation of each node in the graph representation of a
 // genome. Each node consists of a node ID, its type, and the activation type.
 type NodeGene struct {
-	ID         int             // node ID
-	Type       string          // node type
-	Activation *ActivationFunc // activation function
+	ID         int             `json:"id"`         // node ID
+	Type       string          `json:"type"`       // node type
+	Activation *ActivationFunc `json:"activation"` // activation function
 }
 
 // NewNodeGene returns a new instance of NodeGene, given its ID, its type, and
@@ -30,10 +33,10 @@ func (n *NodeGene) String() string {
 // node, connection weight, and an indication of whether this connection is
 // disabled
 type ConnGene struct {
-	From     *NodeGene // input node
-	To       *NodeGene // output node
-	Weight   float64   // connection weight
-	Disabled bool      // true if disabled
+	From     *NodeGene `json:"from"`     // input node
+	To       *NodeGene `json:"to"`       // output node
+	Weight   float64   `json:"weight"`   // connection weight
+	Disabled bool      `json:"disabled"` // true if disabled
 }
 
 // NewConnGene returns a new instance of ConnGene, given the input and output
@@ -54,12 +57,12 @@ func (c *ConnGene) String() string {
 // Genome encodes the weights and topology of the output network as a collection
 // of nodes and connection genes.
 type Genome struct {
-	ID        int         // genome ID
-	SpeciesID int         // genome's species ID
-	NodeGenes []*NodeGene // nodes in the genome
-	ConnGenes []*ConnGene // connections in the genome
-	Fitness   float64     // fitness score
-	evaluated bool        // true if already evaluated
+	ID        int         `json:"id"`        // genome ID
+	SpeciesID int         `json:"speciesID"` // genome's species ID
+	NodeGenes []*NodeGene `json:"nodeGenes"` // nodes in the genome
+	ConnGenes []*ConnGene `json:"connGenes"` // connections in the genome
+	Fitness   float64     `json:"fitness"`   // fitness score
+	evaluated bool        `json:"evaluated"` // true if already evaluated
 }
 
 // NewGenome returns an instance of initial Genome with fully connected input
@@ -102,6 +105,24 @@ func (g *Genome) Evaluate(eval EvaluationFunc) {
 	}
 	g.Fitness = eval(NewNeuralNetwork(g))
 	g.evaluated = true
+}
+
+// ExportJSON exports a JSON file that contains
+func (g *Genome) ExportJSON() error {
+	// create a new json file
+	filename := fmt.Sprintf("genome_%d_%d.json", g.ID, time.Now().UnixNano())
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+
+	encoder := json.NewEncoder(f)
+	encoder.SetIndent("", "\t")
+	if err = encoder.Encode(g); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Mutate mutates the genome in three ways, by perturbing each connection's
