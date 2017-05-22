@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>NEAT.Go Dashboard</title>
+
+    <!-- material design lite -->
+    <link rel="stylesheet" href="css/icon.css">
+    <link rel="stylesheet" href="css/material.min.css">
+    <script type="text/javascript" src="js/material.min.js"></script>
+
+    <!-- bulma -->
+    <link rel="stylesheet" href="css/bulma.css">
+
+    <!-- font awesome -->
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+
+    <!-- other JavaScript libraries -->
+    <script type="text/javascript" src="js/vue.min.js"></script>
+    <script type="text/javascript" src="js/d3.min.js"></script>
+
+  </head>
+  <body>
+    <script type="text/javascript">
+      // setValue sets the argument value to display on an element pointed by
+      // argument ID.
+      function setValue(id, value) {
+        var fixed = parseFloat(value).toFixed(2)
+        document.getElementById(id).innerHTML = fixed;
+      }
+    </script>
+
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+      <header class="mdl-layout__header">
+
+        <!-- title -->
+        <div class="mdl-layout__header-row">
+          <span class="mdl-layout-title">NEAT.Go Dashboard</span>
+        </div>
+
+        <!-- tabs -->
+        <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
+          <a href="#config" class="mdl-layout__tab is-active">Configuration</a>
+          <a href="#progress" class="mdl-layout__tab">Progress</a>
+          <a href="#result" class="mdl-layout__tab">Result</a>
+        </div>
+
+      </header>
+
+      <main class="mdl-layout__content">
+        <section class="mdl-layout__tab-panel is-active" id="config">
+          <div class="page-content">
+            <div class="mdl-grid">
+              <div class="mdl-cell mdl-cell--6-col">
+
+                <ul class="mdl-list">
+                  <li class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                      Verbose mode
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                      <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="verboseMode">
+                        <input type="checkbox" id="verboseMode" class="mdl-switch__input" checked>
+                        <span class="mdl-switch__label"></span>
+                      </label>
+                    </span>
+                  </li>
+
+                  <li class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                      Number of inputs
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                      <form action="#">
+                        <div class="mdl-textfield mdl-js-textfield">
+                          <input class="mdl-textfield__input" type="text" pattern="|^[1-9][0-9]*$|" id="numInputs">
+                          <label class="mdl-textfield__label" for="numInputs">Positive integer...</label>
+                          <span class="mdl-textfield__error">Number of inputs must be a positive integer!</span>
+                        </div>
+                      </form>
+                    </span>
+                  </li>
+
+                  <li class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                      Number of outputs
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                      <form action="#">
+                        <div class="mdl-textfield mdl-js-textfield">
+                          <input class="mdl-textfield__input" type="text" pattern="|^[1-9][0-9]*$|" id="numOutputs">
+                          <label class="mdl-textfield__label" for="numOutputs">Positive integer...</label>
+                          <span class="mdl-textfield__error">Number of outputs must be a positive integer!</span>
+                        </div>
+                      </form>
+                    </span>
+                  </li>
+
+                  <li class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                      Number of generations
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                      <form action="#">
+                        <div class="mdl-textfield mdl-js-textfield">
+                          <input class="mdl-textfield__input" type="text" pattern="|^[1-9][0-9]*$|" id="numGenerations">
+                          <label class="mdl-textfield__label" for="numGenerations">Positive integer...</label>
+                          <span class="mdl-textfield__error">Number of generations must be a positive integer!</span>
+                        </div>
+                      </form>
+                    </span>
+                  </li>
+
+                  <li class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                      Population size
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                      <form action="#">
+                        <div class="mdl-textfield mdl-js-textfield">
+                          <input class="mdl-textfield__input" type="text" pattern="|^[1-9][0-9]*$|" id="populationSize">
+                          <label class="mdl-textfield__label" for="populationSize">Positive integer...</label>
+                          <span class="mdl-textfield__error">Population size must be a positive integer!</span>
+                        </div>
+                      </form>
+                    </span>
+                  </li>
+
+                  <li class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                      Initial fitness score
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                      <form action="#">
+                        <div class="mdl-textfield mdl-js-textfield">
+                          <input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="initialFitness">
+                          <label class="mdl-textfield__label" for="initialFitness">Real number...</label>
+                          <span class="mdl-textfield__error">Initial fitness must be a number!</span>
+                        </div>
+                      </form>
+                    </span>
+                  </li>
+
+                  <li class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                      Minimize fitness
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                      <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="minimizeFitness">
+                        <input type="checkbox" id="minimizeFitness" class="mdl-switch__input" checked />
+                      </label>
+                    </span>
+                  </li>
+
+                  <li class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                      Survival rate in each species
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                      <p style="width:300px">
+                        <input class="mdl-slider mdl-js-slider" type="range" min="0" max="1" value="0.30"
+                        tabindex="0" step="0.01" oninput="setValue('survivalRate', this.value)"
+                        onchange="setValue('survivalRate', this.value)">
+                      </p>
+                      <div id="survivalRate">0.30</div>
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="mdl-cell mdl-cell--6-col">
+                <ul class="mdl-list">
+
+                  <li class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                      Stagnation limit
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                      <form action="#">
+                        <div class="mdl-textfield mdl-js-textfield">
+                          <input class="mdl-textfield__input" type="text" pattern="|^[1-9][0-9]*$|" id="stagnationLimit">
+                          <label class="mdl-textfield__label" for="stagnationLimit">Positive integer...</label>
+                          <span class="mdl-textfield__error">Stagnation limit (generations) must be a positive integer!</span>
+                        </div>
+                      </form>
+                    </span>
+                  </li>
+
+                  <li class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                      Hall of fame size
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                      <form action="#">
+                        <div class="mdl-textfield mdl-js-textfield">
+                          <input class="mdl-textfield__input" type="text" pattern="|^[1-9][0-9]*$|" id="hofSize">
+                          <label class="mdl-textfield__label" for="hofSize">Positive integer...</label>
+                          <span class="mdl-textfield__error">Size of hall of fame must be a positive integer!</span>
+                        </div>
+                      </form>
+                    </span>
+                  </li>
+
+                  <li class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                      Rate of mutation by perturbation
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                      <p style="width:300px">
+                        <input class="mdl-slider mdl-js-slider" type="range" min="0" max="1" value="0.30"
+                        tabindex="0" step="0.01" oninput="setValue('ratePerturb', this.value)"
+                        onchange="setValue('ratePerturb', this.value)">
+                      </p>
+                      <div id="ratePerturb">0.30</div>
+                    </span>
+                  </li>
+
+                  <li class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                      Rate of mutation by adding a node
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                      <p style="width:300px">
+                        <input class="mdl-slider mdl-js-slider" type="range" min="0" max="1" value="0.30"
+                        tabindex="0" step="0.01" oninput="setValue('rateAddNode', this.value)"
+                        onchange="setValue('rateAddNode', this.value)">
+                      </p>
+                      <div id="rateAddNode">0.30</div>
+                    </span>
+                  </li>
+
+                  <li class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                      Rate of mutation by adding an edge
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                      <p style="width:300px">
+                        <input class="mdl-slider mdl-js-slider" type="range" min="0" max="1" value="0.30"
+                        tabindex="0" step="0.01" oninput="setValue('rateAddEdge', this.value)"
+                        onchange="setValue('rateAddEdge', this.value)">
+                      </p>
+                      <div id="rateAddEdge">0.30</div>
+                    </span>
+                  </li>
+
+                  <li class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                      Compatibility distance threshold
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                      <form action="#">
+                        <div class="mdl-textfield mdl-js-textfield">
+                          <input class="mdl-textfield__input" type="text" pattern="[0-9]*(\.[0-9]+)?" id="threshold">
+                          <label class="mdl-textfield__label" for="threshold">Positive real number...</label>
+                          <span class="mdl-textfield__error">compatibility distance threshold must be a positive number!</span>
+                        </div>
+                      </form>
+                    </span>
+                  </li>
+
+                  <li class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                      Coefficient for unmatching genes
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                      <form action="#">
+                        <div class="mdl-textfield mdl-js-textfield">
+                          <input class="mdl-textfield__input" type="text" pattern="[0-9]*(\.[0-9]+)?" id="unmatching">
+                          <label class="mdl-textfield__label" for="unmatching">Positive real number...</label>
+                          <span class="mdl-textfield__error">coefficient must be a positive number!</span>
+                        </div>
+                      </form>
+                    </span>
+                  </li>
+
+                  <li class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                      Coefficient for matching genes
+                    </span>
+                    <span class="mdl-list__item-secondary-content">
+                      <form action="#">
+                        <div class="mdl-textfield mdl-js-textfield">
+                          <input class="mdl-textfield__input" type="text" pattern="[0-9]*(\.[0-9]+)?" id="matching">
+                          <label class="mdl-textfield__label" for="matching">Positive real number...</label>
+                          <span class="mdl-textfield__error">coefficient must be a positive number!</span>
+                        </div>
+                      </form>
+                    </span>
+                  </li>
+                </ul>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- start button -->
+          <div class="mdl-grid">
+            <!-- <div class="mdl-layout-spacer"></div> -->
+            <div class="mdl-cell mdl-cell--12-col">
+              <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                Start evolution
+              </button>
+            </div>
+            <!-- <div class="mdl-layout-spacer"></div> -->
+          </div>
+        </section>
+
+        <section class="mdl-layout__tab-panel" id="progress">
+
+        </section>
+
+        <section class="mdl-layout__tab-panel" id="result">
+
+        </section>
+
+        <footer class="mdl-mini-footer">
+          <div class="mdl-mini-footer__left-section">
+            <p>
+              <a href="http://github.com/jinyeom/neat">NEAT.Go</a> by <a href="http://jinyeom.github.io">Jin Yeom</a>. The source code is licensed
+              <a href="http://opensource.org/licenses/mit-license.php">MIT</a>. The website content
+              is licensed <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">CC ANS 4.0</a>.
+            </p>
+          </div>
+        </footer>
+      </main>
+    </div>
+
+
+
+  </body>
+
+
+</html>

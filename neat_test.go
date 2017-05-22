@@ -18,7 +18,7 @@ func NEATUnitTest() {
 
 	fmt.Println("\x1b[32m=Testing creating and running NEAT...\x1b[0m")
 	n := New(config, XORTest())
-	n.Run(true)
+	n.Run()
 
 	for _, g := range n.HallOfFame.BestGenomes {
 		fmt.Println(g.String())

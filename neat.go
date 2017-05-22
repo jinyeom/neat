@@ -15,6 +15,9 @@ import (
 // Config consists of all hyperparameter settings for NEAT. It can be imported
 // from a JSON file.
 type Config struct {
+	// general settings
+	Verbose bool `json:"verbose"` // verbose mode (terminal)
+
 	// neural network settings
 	NumInputs  int `json:"numInputs"`  // number of inputs (including bias)
 	NumOutputs int `json:"numOutputs"` // number of outputs
@@ -62,6 +65,10 @@ func (c *Config) Summarize() {
 	fmt.Fprintf(w, "==================================================\n")
 	fmt.Fprintf(w, "Summary of NEAT hyperparameter configuration\t\n")
 	fmt.Fprintf(w, "==================================================\n")
+	fmt.Fprintf(w, "--------------------------------------------------\n")
+	fmt.Fprintf(w, "General settings\t\n")
+	fmt.Fprintf(w, "--------------------------------------------------\n")
+	fmt.Fprintf(w, "+ Verbose mode\t%t\t\n", c.Verbose)
 	fmt.Fprintf(w, "--------------------------------------------------\n")
 	fmt.Fprintf(w, "Neural network settings\t\n")
 	fmt.Fprintf(w, "--------------------------------------------------\n")
@@ -314,15 +321,16 @@ func (n *NEAT) Reproduce() {
 }
 
 // Run executes evolution.
-func (n *NEAT) Run(verbose bool) {
-	if verbose {
+func (n *NEAT) Run() {
+	if n.Config.Verbose {
 		n.Config.Summarize()
 	}
 
+	// for each generation
 	for i := 0; i < n.Config.NumGenerations; i++ {
 		n.Evaluate()
 		n.Statistics.Update(i, n)
-		if verbose {
+		if n.Config.Verbose {
 			n.Summarize(i)
 		}
 
