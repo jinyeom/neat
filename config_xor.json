@@ -1,4 +1,5 @@
 {
+	"experimentName": "XOR Test",
 	"verbose": true,
 	"numInputs": 3,
 	"numOutputs": 1,

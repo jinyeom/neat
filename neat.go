@@ -16,7 +16,8 @@ import (
 // from a JSON file.
 type Config struct {
 	// general settings
-	Verbose bool `json:"verbose"` // verbose mode (terminal)
+	ExperimentName string `json:"experimentName"` // name of the experiment
+	Verbose        bool   `json:"verbose"`        // verbose mode (terminal)
 
 	// neural network settings
 	NumInputs  int `json:"numInputs"`  // number of inputs (including bias)
@@ -68,6 +69,7 @@ func (c *Config) Summarize() {
 	fmt.Fprintf(w, "--------------------------------------------------\n")
 	fmt.Fprintf(w, "General settings\t\n")
 	fmt.Fprintf(w, "--------------------------------------------------\n")
+	fmt.Fprintf(w, "+ Experiment name\t%s\t\n", c.ExperimentName)
 	fmt.Fprintf(w, "+ Verbose mode\t%t\t\n", c.Verbose)
 	fmt.Fprintf(w, "--------------------------------------------------\n")
 	fmt.Fprintf(w, "Neural network settings\t\n")

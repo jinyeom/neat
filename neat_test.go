@@ -10,20 +10,24 @@ func NEATUnitTest() {
 	fmt.Println("===== NEAT Unit Test =====")
 
 	fmt.Println("\x1b[32m=Testing config JSON file import...\x1b[0m")
-	config, err := NewConfigJSON("config.json")
+	configXOR, err := NewConfigJSON("config_xor.json")
 	if err != nil {
 		fmt.Println("\x1b[31mFAIL\x1b[0m")
 	}
-	config.Summarize()
+	configXOR.Summarize()
 
-	fmt.Println("\x1b[32m=Testing creating and running NEAT...\x1b[0m")
-	n := New(config, XORTest())
-	n.Run()
+	fmt.Println("\x1b[32m=Testing NEAT with XOR test...\x1b[0m")
+	n0 := New(configXOR, XORTest())
+	n0.Run()
 
-	for _, g := range n.HallOfFame.BestGenomes {
-		fmt.Println(g.String())
+	fmt.Println("\x1b[32m=Testing NEAT with pole balancing test...\x1b[0m")
+	configPole, err := NewConfigJSON("config_pole_balancing.json")
+	if err != nil {
+		fmt.Println("\x1b[31mFAIL\x1b[0m")
 	}
-
+	configPole.Summarize()
+	n1 := New(configPole, PoleBalancingTest(false, 120000))
+	n1.Run()
 }
 
 func TestNEAT(t *testing.T) {
