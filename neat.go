@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"runtime"
 	"sort"
+	"sync"
 )
 
 // NEAT is the implementation of NeuroEvolution of Augmenting Topology (NEAT).
@@ -82,9 +84,22 @@ func (n *NEAT) Summarize(gen int) {
 // Evaluate evaluates fitness of every genome in the population. After the
 // evaluation, their fitness scores are recored in each genome.
 func (n *NEAT) Evaluate() {
-	for _, genome := range n.Population {
-		genome.Evaluate(n.Evaluation)
+	// for parallel processing; potentially, if there are the same number of CPUs
+	// as the population size, all genomes in the population can be evaluated at
+	// the same time.
+	runtime.GOMAXPROCS(n.Config.PopulationSize)
+
+	var wg sync.WaitGroup
+
+	for i := range n.Population {
+		wg.Add(1)
+		go func(j int) {
+			defer wg.Done()
+			n.Population[j].Evaluate(n.Evaluation)
+		}(i)
 	}
+
+	wg.Wait()
 
 	// explicit fitness sharing
 	/*

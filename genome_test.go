@@ -70,7 +70,7 @@ func GenomeUnitTest() {
 
 	/*
 		fmt.Println("\x1b[32m=Testing JSON export...\x1b[0m")
-		if err := g1.ExportJSON(); err != nil {
+		if err := g1.ExportJSON(false); err != nil {
 			log.Fatal(err)
 		}
 	*/

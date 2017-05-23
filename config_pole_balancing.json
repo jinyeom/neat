@@ -3,7 +3,7 @@
 	"verbose": true,
 	"numInputs": 4,
 	"numOutputs": 2,
-	"numGenerations": 200,
+	"numGenerations": 50,
 	"populationSize": 100,
 	"initFitness": 0.0,
 	"minimizeFitness": false,
@@ -12,7 +12,7 @@
 	"ratePerturb": 0.1,
 	"rateAddNode": 0.1,
 	"rateAddConn": 0.1,
-	"distanceThreshold": 30.0,
-	"coeffUnmatching": 1.0,
+	"distanceThreshold": 10.0,
+	"coeffUnmatching": 0.5,
 	"coeffMatching": 0.5
 }

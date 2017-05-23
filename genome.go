@@ -155,8 +155,10 @@ func (g *Genome) Evaluate(eval EvaluationFunc) {
 	g.evaluated = true
 }
 
-// ExportJSON exports a JSON file that contains
-func (g *Genome) ExportJSON() error {
+// ExportJSON exports a JSON file that contains this genome's information. If
+// the argument format indicator is true, the exported JSON file will be
+// formatted with indentations.
+func (g *Genome) ExportJSON(format bool) error {
 	// create a new json file
 	filename := fmt.Sprintf("genome_%d_%d.json", g.ID, time.Now().UnixNano())
 	f, err := os.Create(filename)
@@ -165,7 +167,9 @@ func (g *Genome) ExportJSON() error {
 	}
 
 	encoder := json.NewEncoder(f)
-	encoder.SetIndent("", "\t")
+	if format {
+		encoder.SetIndent("", "\t")
+	}
 	if err = encoder.Encode(g); err != nil {
 		return err
 	}
@@ -194,7 +198,8 @@ func Mutate(g *Genome, ratePerturb, rateAddNode, rateAddConn float64) {
 		newNode := NewNodeGene(len(g.NodeGenes), "hidden", ActivationSet["sigmoid"])
 
 		g.NodeGenes = append(g.NodeGenes, newNode)
-		g.ConnGenes = append(g.ConnGenes, NewConnGene(selected.From, newNode.ID, 1.0),
+		g.ConnGenes = append(g.ConnGenes,
+			NewConnGene(selected.From, newNode.ID, 1.0),
 			NewConnGene(newNode.ID, selected.To, selected.Weight))
 		selected.Disabled = true
 	}

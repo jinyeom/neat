@@ -20,7 +20,7 @@ func NewSpecies(id int, g *Genome) *Species {
 	return &Species{
 		ID:             id,
 		Stagnation:     0,
-		Representative: g,
+		Representative: g.Copy(),
 		BestFitness:    g.Fitness,
 		Members:        []*Genome{g},
 	}

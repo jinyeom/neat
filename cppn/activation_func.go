@@ -72,7 +72,7 @@ func RandActivationFunc() *neat.ActivationFunc {
 // Identity returns the identity function as an activation
 // function. This function is only used for sensor nodes.
 func Identity() *neat.ActivationFunc {
-	return &ActivationFunc{
+	return &neat.ActivationFunc{
 		Name: "Identity",
 		Fn: func(x float64) float64 {
 			return x
@@ -82,7 +82,7 @@ func Identity() *neat.ActivationFunc {
 
 // Sigmoid returns the sigmoid function as an activation function.
 func Sigmoid() *neat.ActivationFunc {
-	return &ActivationFunc{
+	return &neat.ActivationFunc{
 		Name: "Sigmoid",
 		Fn: func(x float64) float64 {
 			return 1.0 / (1.0 + math.Exp(-x))
@@ -107,7 +107,7 @@ func Sin() *neat.ActivationFunc {
 }
 
 // Cos returns the cosine function as an activation function.
-func Cos() *ActivationFunc {
+func Cos() *neat.ActivationFunc {
 	return &ActivationFunc{
 		Name: "Cosine",
 		Fn:   math.Cos,
@@ -115,7 +115,7 @@ func Cos() *ActivationFunc {
 }
 
 // ReLU returns a rectifier linear unit as an activation function.
-func ReLU() *ActivationFunc {
+func ReLU() *neat.ActivationFunc {
 	return &ActivationFunc{
 		Name: "ReLU",
 		Fn: func(x float64) float64 {
@@ -125,7 +125,7 @@ func ReLU() *ActivationFunc {
 }
 
 // Log returns the log function as an activation function.
-func Log() *ActivationFunc {
+func Log() *neat.ActivationFunc {
 	return &ActivationFunc{
 		Name: "Log",
 		Fn:   math.Log,
