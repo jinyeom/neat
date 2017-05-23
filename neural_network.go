@@ -128,7 +128,7 @@ func (n *NeuralNetwork) String() string {
 	return str[:len(str)-1]
 }
 
-// Feedforward propagates inputs signals from input neurons to output neurons,
+// FeedForward propagates inputs signals from input neurons to output neurons,
 // and return output signals.
 func (n *NeuralNetwork) FeedForward(inputs []float64) ([]float64, error) {
 	if len(inputs) != n.NumInputs {

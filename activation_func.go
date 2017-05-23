@@ -22,6 +22,8 @@ import (
 )
 
 var (
+	// ActivationSet is a set of functions that can be used as an activation
+	// function of a neuron.
 	ActivationSet = map[string]*ActivationFunc{
 		"identity": Identity(),
 		"sigmoid":  Sigmoid(),

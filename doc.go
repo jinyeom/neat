@@ -87,5 +87,4 @@ start experiment with NEAT. Below is an example XOR experiment.
   	neat.New(config, neat.XORTest()).Run()
   }
 */
-
 package neat

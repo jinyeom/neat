@@ -55,7 +55,7 @@ type Config struct {
 	CoeffMatching     float64 `json:"coeffMatching"`     // matching genes
 }
 
-// NewConfig creates a new instance of Config, given the name of a JSON file
+// NewConfigJSON creates a new instance of Config, given the name of a JSON file
 // that consists of the hyperparameter settings.
 func NewConfigJSON(filename string) (*Config, error) {
 	f, err := os.Open(filename)

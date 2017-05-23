@@ -271,7 +271,7 @@ func (n *NEAT) Run() {
 
 		// eliminate stagnant species
 		if len(n.Species) > 1 {
-			survived := make([]*Species, 0)
+			var survived []*Species
 			for j := range n.Species {
 				if n.Species[j].Stagnation <= n.Config.StagnationLimit {
 					n.Species[j].Stagnation++
