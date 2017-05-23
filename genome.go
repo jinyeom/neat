@@ -132,13 +132,17 @@ func (g *Genome) Copy() *Genome {
 // String returns the string representation of the genome.
 func (g *Genome) String() string {
 	str := fmt.Sprintf("Genome(%d, %.3f):\n", g.ID, g.Fitness)
+	str += "Nodes (\n"
 	for _, node := range g.NodeGenes {
-		str += node.String() + "\n"
+		str += "  " + node.String() + "\n"
 	}
+	str += ")\n"
+	str += "Connections (\n"
 	for _, conn := range g.ConnGenes {
-		str += conn.String() + "\n"
+		str += "  " + conn.String() + "\n"
 	}
-	return str[:len(str)-1]
+	str += ")"
+	return str
 }
 
 // Evaluate takes an evaluation function and evaluates its fitness. Only perform
