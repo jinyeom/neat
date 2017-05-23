@@ -21,7 +21,7 @@ run.
 
 ```json
 {
-	"experimentName": "XOR Test"
+	"experimentName": "XOR Test",
 	"verbose": true,
 	"numInputs": 3,
 	"numOutputs": 1,
