@@ -78,12 +78,12 @@ start experiment with NEAT. Below is an example XOR experiment.
   		log.Fatal(err)
   	}
 
-    Then, we can define the evaluation function, which is a type of function
-    which takes a neural network, evaluates its performance, and returns some
-    score that indicates its performance. This score is essentially a
-    genome's fitness score. With the configuration and the evaluation
-    function we defined, we can create a new instance of NEAT and start the
-    evolution process.
+    // Then, we can define the evaluation function, which is a type of function
+    // which takes a neural network, evaluates its performance, and returns some
+    // score that indicates its performance. This score is essentially a
+    // genome's fitness score. With the configuration and the evaluation
+    // function we defined, we can create a new instance of NEAT and start the
+    // evolution process.
   	neat.New(config, neat.XORTest()).Run()
   }
 */
