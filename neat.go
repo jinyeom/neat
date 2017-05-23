@@ -326,9 +326,7 @@ func (n *NEAT) Run() {
 		// update the best genome
 		for _, genome := range n.Population {
 			if n.Comparison(genome, n.Best) {
-				fmt.Printf("Current best fitness: %f\n", n.Best.Fitness)
-				fmt.Printf("Compared genome fitness: %f\n", genome.Fitness)
-				n.Best = genome
+				n.Best = genome.Copy()
 			}
 		}
 	}

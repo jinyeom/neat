@@ -23,6 +23,11 @@ func NewNodeGene(id int, ntype string, activation *ActivationFunc) *NodeGene {
 	return &NodeGene{id, ntype, activation}
 }
 
+// Copy returns a deep copy of this node gene.
+func (n *NodeGene) Copy() *NodeGene {
+	return &NodeGene{n.ID, n.Type, n.Activation}
+}
+
 // String returns a string representation of the node.
 func (n *NodeGene) String() string {
 	return fmt.Sprintf("[%s(%d, %s)]", n.Type, n.ID, n.Activation.Name)
@@ -33,16 +38,26 @@ func (n *NodeGene) String() string {
 // node, connection weight, and an indication of whether this connection is
 // disabled
 type ConnGene struct {
-	From     *NodeGene `json:"from"`     // input node
-	To       *NodeGene `json:"to"`       // output node
-	Weight   float64   `json:"weight"`   // connection weight
-	Disabled bool      `json:"disabled"` // true if disabled
+	From     int     `json:"from"`     // input node
+	To       int     `json:"to"`       // output node
+	Weight   float64 `json:"weight"`   // connection weight
+	Disabled bool    `json:"disabled"` // true if disabled
 }
 
 // NewConnGene returns a new instance of ConnGene, given the input and output
 // node genes. By default, the connection is enabled.
-func NewConnGene(from, to *NodeGene, weight float64) *ConnGene {
+func NewConnGene(from, to int, weight float64) *ConnGene {
 	return &ConnGene{from, to, weight, false}
+}
+
+// Copy returns a deep copy of this connection gene.
+func (c *ConnGene) Copy() *ConnGene {
+	return &ConnGene{
+		From:     c.From,
+		To:       c.To,
+		Weight:   c.Weight,
+		Disabled: c.Disabled,
+	}
 }
 
 // String returns the string representation of this connection.
@@ -51,7 +66,7 @@ func (c *ConnGene) String() string {
 	if c.Disabled {
 		connectivity = " / "
 	}
-	return fmt.Sprintf("%s-%s->%s", c.From.String(), connectivity, c.To.String())
+	return fmt.Sprintf("[%d]-%s->[%d]", c.From, connectivity, c.To)
 }
 
 // Genome encodes the weights and topology of the output network as a collection
@@ -90,9 +105,36 @@ func NewGenome(id, numInputs, numOutputs int, initFitness float64) *Genome {
 	}
 }
 
+// Copy returns a deep copy of this genome.
+func (g *Genome) Copy() *Genome {
+	return &Genome{
+		ID:        g.ID,
+		SpeciesID: g.SpeciesID,
+		NodeGenes: func() []*NodeGene {
+			copies := make([]*NodeGene, len(g.NodeGenes))
+			for i := range copies {
+				copies[i] = g.NodeGenes[i].Copy()
+			}
+			return copies
+		}(),
+		ConnGenes: func() []*ConnGene {
+			copies := make([]*ConnGene, len(g.ConnGenes))
+			for i := range copies {
+				copies[i] = g.ConnGenes[i].Copy()
+			}
+			return copies
+		}(),
+		Fitness:   g.Fitness,
+		evaluated: g.evaluated,
+	}
+}
+
 // String returns the string representation of the genome.
 func (g *Genome) String() string {
 	str := fmt.Sprintf("Genome(%d, %.3f):\n", g.ID, g.Fitness)
+	for _, node := range g.NodeGenes {
+		str += node.String() + "\n"
+	}
 	for _, conn := range g.ConnGenes {
 		str += conn.String() + "\n"
 	}
@@ -148,8 +190,8 @@ func Mutate(g *Genome, ratePerturb, rateAddNode, rateAddConn float64) {
 		newNode := NewNodeGene(len(g.NodeGenes), "hidden", ActivationSet["sigmoid"])
 
 		g.NodeGenes = append(g.NodeGenes, newNode)
-		g.ConnGenes = append(g.ConnGenes, NewConnGene(selected.From, newNode, 1.0),
-			NewConnGene(newNode, selected.To, selected.Weight))
+		g.ConnGenes = append(g.ConnGenes, NewConnGene(selected.From, newNode.ID, 1.0),
+			NewConnGene(newNode.ID, selected.To, selected.Weight))
 		selected.Disabled = true
 	}
 
@@ -159,8 +201,8 @@ func Mutate(g *Genome, ratePerturb, rateAddNode, rateAddConn float64) {
 	if rand.Float64() < rateAddConn {
 		g.evaluated = false
 
-		selectedNode0 := g.NodeGenes[rand.Intn(len(g.NodeGenes))]
-		selectedNode1 := g.NodeGenes[rand.Intn(len(g.NodeGenes))]
+		selectedNode0 := g.NodeGenes[rand.Intn(len(g.NodeGenes))].ID
+		selectedNode1 := g.NodeGenes[rand.Intn(len(g.NodeGenes))].ID
 
 		for _, conn := range g.ConnGenes {
 			if conn.From == selectedNode0 && conn.To == selectedNode1 {
@@ -187,10 +229,10 @@ func Mutate(g *Genome, ratePerturb, rateAddNode, rateAddConn float64) {
 func Crossover(id int, g0, g1 *Genome, initFitness float64) *Genome {
 	innovations := make(map[[2]int]*ConnGene)
 	for _, conn := range g0.ConnGenes {
-		innovations[[2]int{conn.From.ID, conn.To.ID}] = conn
+		innovations[[2]int{conn.From, conn.To}] = conn
 	}
 	for _, conn := range g1.ConnGenes {
-		innov := [2]int{conn.From.ID, conn.To.ID}
+		innov := [2]int{conn.From, conn.To}
 		if innovations[innov] != nil {
 			if rand.Float64() < 0.5 {
 				innovations[innov] = conn
@@ -207,19 +249,13 @@ func Crossover(id int, g0, g1 *Genome, initFitness float64) *Genome {
 	}
 	nodeGenes := make([]*NodeGene, len(largerParent.NodeGenes))
 	for i := range largerParent.NodeGenes {
-		n := largerParent.NodeGenes[i]
-		nodeGenes[i] = &NodeGene{n.ID, n.Type, n.Activation}
+		nodeGenes[i] = largerParent.NodeGenes[i].Copy()
 	}
 
 	// copy connection genes
 	connGenes := make([]*ConnGene, 0, len(innovations))
 	for _, conn := range innovations {
-		connGenes = append(connGenes, &ConnGene{
-			From:     nodeGenes[conn.From.ID],
-			To:       nodeGenes[conn.To.ID],
-			Weight:   conn.Weight,
-			Disabled: conn.Disabled,
-		})
+		connGenes = append(connGenes, conn.Copy())
 	}
 
 	return &Genome{
@@ -248,11 +284,11 @@ func Compatibility(g0, g1 *Genome, c0, c1 float64) float64 {
 	innov1 := make(map[[2]int]*ConnGene) // innovations in g1
 
 	for _, conn := range g0.ConnGenes {
-		innov0[[2]int{conn.From.ID, conn.To.ID}] = conn
+		innov0[[2]int{conn.From, conn.To}] = conn
 	}
 
 	for _, conn := range g1.ConnGenes {
-		innov1[[2]int{conn.From.ID, conn.To.ID}] = conn
+		innov1[[2]int{conn.From, conn.To}] = conn
 	}
 
 	matching := make(map[*ConnGene]*ConnGene) // pairs of matching genes
@@ -262,7 +298,7 @@ func Compatibility(g0, g1 *Genome, c0, c1 float64) float64 {
 	// in g0 is not one of g1's innovations, increment unmatching counter.
 	// Otherwise, add the connection to matching
 	for _, conn := range g0.ConnGenes {
-		innov := innov1[[2]int{conn.From.ID, conn.To.ID}]
+		innov := innov1[[2]int{conn.From, conn.To}]
 		if innov == nil {
 			unmatchingCount++
 		} else {
@@ -272,7 +308,7 @@ func Compatibility(g0, g1 *Genome, c0, c1 float64) float64 {
 
 	// repeat for g0's innovations, to count unmatching connection genes for g1.
 	for _, conn := range g1.ConnGenes {
-		if innov0[[2]int{conn.From.ID, conn.To.ID}] == nil {
+		if innov0[[2]int{conn.From, conn.To}] == nil {
 			unmatchingCount++
 		}
 	}

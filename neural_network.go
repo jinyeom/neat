@@ -89,11 +89,11 @@ func NewNeuralNetwork(g *Genome) *NeuralNetwork {
 	for _, connGene := range g.ConnGenes {
 		if !connGene.Disabled {
 			if in := sort.Search(len(neurons), func(i int) bool {
-				return neurons[i].ID >= connGene.From.ID
-			}); in < len(neurons) && neurons[in].ID == connGene.From.ID {
+				return neurons[i].ID >= connGene.From
+			}); in < len(neurons) && neurons[in].ID == connGene.From {
 				if out := sort.Search(len(neurons), func(i int) bool {
-					return neurons[i].ID >= connGene.To.ID
-				}); out < len(neurons) && neurons[out].ID == connGene.To.ID {
+					return neurons[i].ID >= connGene.To
+				}); out < len(neurons) && neurons[out].ID == connGene.To {
 					neurons[out].Synapses[neurons[in]] = connGene.Weight
 				}
 			}
