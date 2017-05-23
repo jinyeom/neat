@@ -9,7 +9,7 @@ import (
 func NeuralNetworkUnitTest() {
 	fmt.Println("===== Neural Network Unit Test =====")
 
-	g0 := NewGenome(0, 3, 1)
+	g0 := NewGenome(0, 3, 1, 0.0)
 	Mutate(g0, 1.0, 1.0, 1.0)
 	Mutate(g0, 1.0, 1.0, 1.0)
 	n0 := NewNeuralNetwork(g0)

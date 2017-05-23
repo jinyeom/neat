@@ -7,13 +7,13 @@
 	"populationSize": 50,
 	"initFitness": 0.0,
 	"minimizeFitness": false,
-	"survivalRate": 0.2,
+	"survivalRate": 0.5,
 	"stagnationLimit": 10,
 	"hallOfFameSize": 3,
 	"ratePerturb": 0.2,
 	"rateAddNode": 0.2,
 	"rateAddConn": 0.2,
-	"distanceThreshold": 5.0,
+	"distanceThreshold": 10.0,
 	"coeffUnmatching": 1.0,
 	"coeffMatching": 0.5
 }

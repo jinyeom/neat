@@ -67,7 +67,7 @@ type Genome struct {
 
 // NewGenome returns an instance of initial Genome with fully connected input
 // and output layers.
-func NewGenome(id, numInputs, numOutputs int) *Genome {
+func NewGenome(id, numInputs, numOutputs int, initFitness float64) *Genome {
 	return &Genome{
 		ID:        id,
 		SpeciesID: -1,
@@ -85,6 +85,8 @@ func NewGenome(id, numInputs, numOutputs int) *Genome {
 			return nodeGenes
 		}(),
 		ConnGenes: make([]*ConnGene, 0),
+		Fitness:   initFitness,
+		evaluated: false,
 	}
 }
 
@@ -132,6 +134,7 @@ func Mutate(g *Genome, ratePerturb, rateAddNode, rateAddConn float64) {
 	// perturb connection weights
 	for _, conn := range g.ConnGenes {
 		if rand.Float64() < ratePerturb {
+			g.evaluated = false
 			conn.Weight += rand.NormFloat64()
 		}
 	}
@@ -139,6 +142,8 @@ func Mutate(g *Genome, ratePerturb, rateAddNode, rateAddConn float64) {
 	// add node between two connected nodes, by randomly selecting a connection;
 	// only applied if there are connections in the genome
 	if rand.Float64() < rateAddNode && len(g.ConnGenes) != 0 {
+		g.evaluated = false
+
 		selected := g.ConnGenes[rand.Intn(len(g.ConnGenes))]
 		newNode := NewNodeGene(len(g.NodeGenes), "hidden", ActivationSet["sigmoid"])
 
@@ -152,6 +157,8 @@ func Mutate(g *Genome, ratePerturb, rateAddNode, rateAddConn float64) {
 	// nodes are not connected yet, and the resulting connection doesn't make the
 	// phenotype network recurrent
 	if rand.Float64() < rateAddConn {
+		g.evaluated = false
+
 		selectedNode0 := g.NodeGenes[rand.Intn(len(g.NodeGenes))]
 		selectedNode1 := g.NodeGenes[rand.Intn(len(g.NodeGenes))]
 
@@ -287,3 +294,16 @@ func Compatibility(g0, g1 *Genome, c0, c1 float64) float64 {
 // indicates whether the first arugment genome is better than the second one
 // in terms of its fitness.
 type ComparisonFunc func(g0, g1 *Genome) bool
+
+// NewComparisonFunc returns a new comparison function, given an indicator of
+// whether the fitness is better when minimized.
+func NewComparisonFunc(minimize bool) ComparisonFunc {
+	if minimize {
+		return func(g0, g1 *Genome) bool {
+			return g0.Fitness < g1.Fitness
+		}
+	}
+	return func(g0, g1 *Genome) bool {
+		return g0.Fitness > g1.Fitness
+	}
+}

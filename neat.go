@@ -6,9 +6,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
-	"runtime"
 	"sort"
-	"sync"
 	"text/tabwriter"
 )
 
@@ -30,7 +28,6 @@ type Config struct {
 	MinimizeFitness bool    `json:"minimizeFitness"` // true if minimizing fitness
 	SurvivalRate    float64 `json:"survivalRate"`    // survival rate
 	StagnationLimit int     `json:"stagnationLimit"` // limit of stagnation
-	HOFSize         int     `json:"hallOfFameSize"`  // hall of fame size
 
 	// mutation rates settings
 	RatePerturb float64 `json:"ratePerturb"` // mutation by perturbing weights
@@ -85,7 +82,6 @@ func (c *Config) Summarize() {
 	fmt.Fprintf(w, "+ Fitness is being minimized\t%t\t\n", c.MinimizeFitness)
 	fmt.Fprintf(w, "+ Rate of survival each generation\t%.3f\t\n", c.SurvivalRate)
 	fmt.Fprintf(w, "+ Limit of species' stagnation\t%d\t\n", c.StagnationLimit)
-	fmt.Fprintf(w, "+ Size of Hall of Fame\t%d\t\n", c.HOFSize)
 	fmt.Fprintf(w, "--------------------------------------------------\n")
 	fmt.Fprintf(w, "Mutation settings\t\n")
 	fmt.Fprintf(w, "--------------------------------------------------\n")
@@ -104,14 +100,12 @@ func (c *Config) Summarize() {
 
 // NEAT is the implementation of NeuroEvolution of Augmenting Topology (NEAT).
 type NEAT struct {
-	sync.Mutex
-
 	Config     *Config        // configuration
 	Population []*Genome      // population of genome
 	Species    []*Species     // subpopulations of genomes grouped by species
 	Evaluation EvaluationFunc // evaluation function
 	Comparison ComparisonFunc // comparison function
-	HallOfFame *HallOfFame    // best performing genomes
+	Best       *Genome        // best genome
 	Statistics *Statistics    // statistics
 
 	nextGenomeID  int // genome ID that is assigned to a newly created genome
@@ -124,18 +118,10 @@ func New(config *Config, evaluation EvaluationFunc) *NEAT {
 	nextGenomeID := 0
 	nextSpeciesID := 0
 
-	comparison := func(g0, g1 *Genome) bool {
-		return g0.Fitness < g1.Fitness
-	}
-	if !config.MinimizeFitness {
-		comparison = func(g0, g1 *Genome) bool {
-			return g0.Fitness > g1.Fitness
-		}
-	}
-
 	population := make([]*Genome, config.PopulationSize)
 	for i := 0; i < config.PopulationSize; i++ {
-		population[i] = NewGenome(nextGenomeID, config.NumInputs, config.NumOutputs)
+		population[i] = NewGenome(nextGenomeID, config.NumInputs,
+			config.NumOutputs, config.InitFitness)
 		nextGenomeID++
 	}
 
@@ -149,8 +135,8 @@ func New(config *Config, evaluation EvaluationFunc) *NEAT {
 		Population:    population,
 		Species:       species,
 		Evaluation:    evaluation,
-		Comparison:    comparison,
-		HallOfFame:    NewHallOfFame(config.HOFSize, config.InitFitness),
+		Comparison:    NewComparisonFunc(config.MinimizeFitness),
+		Best:          population[rand.Intn(config.PopulationSize)],
 		Statistics:    NewStatistics(config.NumGenerations),
 		nextGenomeID:  nextGenomeID,
 		nextSpeciesID: nextSpeciesID,
@@ -171,8 +157,7 @@ func (n *NEAT) Summarize(gen int) {
 	avgFitness /= float64(n.Config.PopulationSize)
 
 	// compose each line of summary and the spacing of separating line
-	str := fmt.Sprintf(tmpl, gen, len(n.Species),
-		n.HallOfFame.BestScore(), avgFitness)
+	str := fmt.Sprintf(tmpl, gen, len(n.Species), n.Best.Fitness, avgFitness)
 	spacing := int(math.Max(float64(len(str)), 80.0))
 
 	for i := 0; i < spacing; i++ {
@@ -188,32 +173,28 @@ func (n *NEAT) Summarize(gen int) {
 // Evaluate evaluates fitness of every genome in the population. After the
 // evaluation, their fitness scores are recored in each genome.
 func (n *NEAT) Evaluate() {
-	runtime.GOMAXPROCS(n.Config.PopulationSize)
-
-	var wg sync.WaitGroup
-	for i := range n.Population {
-		wg.Add(1)
-		go func(j int) {
-			defer wg.Done()
-			n.Population[j].Evaluate(n.Evaluation)
-		}(i)
+	for _, genome := range n.Population {
+		genome.Evaluate(n.Evaluation)
 	}
-	wg.Wait()
 
 	// explicit fitness sharing
-	for i, genome0 := range n.Population {
-		adjustment := 0.0
-		for _, genome1 := range append(n.Population[:i], n.Population[i+1:]...) {
-			if Compatibility(genome0, genome1, n.Config.CoeffUnmatching,
-				n.Config.CoeffMatching) <= n.Config.DistanceThreshold {
-				adjustment += 1.0
+	/*
+
+		for i, genome0 := range n.Population {
+			adjustment := 0.0
+			for _, genome1 := range append(n.Population[:i], n.Population[i+1:]...) {
+				if Compatibility(genome0, genome1, n.Config.CoeffUnmatching,
+					n.Config.CoeffMatching) <= n.Config.DistanceThreshold {
+					adjustment += 1.0
+				}
+			}
+
+			if adjustment != 0.0 {
+				genome0.Fitness /= adjustment
 			}
 		}
 
-		if adjustment != 0.0 {
-			genome0.Fitness /= adjustment
-		}
-	}
+	*/
 }
 
 // Speciate performs speciation of each genome. The speciation mechanism is as
@@ -262,61 +243,50 @@ func (n *NEAT) Speciate() {
 // among surviving genomes. If the number of eliminated genomes is 0 or less
 // then 2 genomes survive, every member survives and mutates.
 func (n *NEAT) Reproduce() {
-	runtime.GOMAXPROCS(len(n.Species))
-
 	nextGeneration := make([]*Genome, 0, n.Config.PopulationSize)
+	for _, s := range n.Species {
+		// genomes in this species can inherit to the next generation, if two or
+		// more genomes survive in this species, and there is room for more
+		// children, i.e., at least one genome must be eliminated.
+		numSurvived := int(math.Ceil(float64(len(s.Members)) *
+			n.Config.SurvivalRate))
+		numEliminated := len(s.Members) - numSurvived
 
-	var wg sync.WaitGroup
-	for _, species := range n.Species {
-		wg.Add(1)
-		go func(s *Species) {
-			defer wg.Done()
+		if numSurvived > 2 && numEliminated > 0 {
+			sort.Slice(s.Members, func(i, j int) bool {
+				return n.Comparison(s.Members[i], s.Members[j])
+			})
+			s.Members = s.Members[:numSurvived]
 
-			// genomes in this species can inherit to the next generation, if two or
-			// more genomes survive in this species, and there is room for more
-			// children, i.e., at least one genome must be eliminated.
-			numSurvived := int(math.Ceil(float64(len(s.Members)) *
-				n.Config.SurvivalRate))
-			numEliminated := len(s.Members) - numSurvived
+			for i := 0; i < numEliminated; i++ {
+				perm := rand.Perm(numSurvived)
+				p0 := s.Members[perm[0]] // parent 0
+				p1 := s.Members[perm[1]] // parent 1
 
-			if numSurvived > 2 && numEliminated > 0 {
-				sort.Slice(s.Members, func(i, j int) bool {
-					return n.Comparison(s.Members[i], s.Members[j])
-				})
-				s.Members = s.Members[:numSurvived]
+				child := Crossover(n.nextGenomeID, p0, p1, n.Config.InitFitness)
+				Mutate(child, n.Config.RatePerturb,
+					n.Config.RateAddNode, n.Config.RateAddConn)
+				n.nextGenomeID++
 
-				for i := 0; i < numEliminated; i++ {
-					perm := rand.Perm(numSurvived)
-					p0 := s.Members[perm[0]] // parent 0
-					p1 := s.Members[perm[1]] // parent 1
-
-					child := Crossover(n.nextGenomeID, p0, p1, n.Config.InitFitness)
-					Mutate(child, n.Config.RatePerturb,
-						n.Config.RateAddNode, n.Config.RateAddConn)
-					n.nextGenomeID++
-
-					nextGeneration = append(nextGeneration, child)
-				}
-
-				for _, genome := range s.Members {
-					Mutate(genome, n.Config.RatePerturb,
-						n.Config.RateAddNode, n.Config.RateAddConn)
-					nextGeneration = append(nextGeneration, genome)
-				}
-			} else {
-				// otherwise, they all survive, and mutate.
-				for _, genome := range s.Members {
-					Mutate(genome, n.Config.RatePerturb,
-						n.Config.RateAddNode, n.Config.RateAddConn)
-					nextGeneration = append(nextGeneration, genome)
-				}
+				nextGeneration = append(nextGeneration, child)
 			}
 
-			s.Flush()
-		}(species)
-	}
+			for _, genome := range s.Members {
+				Mutate(genome, n.Config.RatePerturb,
+					n.Config.RateAddNode, n.Config.RateAddConn)
+				nextGeneration = append(nextGeneration, genome)
+			}
+		} else {
+			// otherwise, they all survive, and mutate.
+			for _, genome := range s.Members {
+				Mutate(genome, n.Config.RatePerturb,
+					n.Config.RateAddNode, n.Config.RateAddConn)
+				nextGeneration = append(nextGeneration, genome)
+			}
+		}
 
-	wg.Wait()
+		s.Flush()
+	}
 
 	// update the population with the new generation
 	n.Population = nextGeneration
@@ -331,6 +301,7 @@ func (n *NEAT) Run() {
 	// for each generation
 	for i := 0; i < n.Config.NumGenerations; i++ {
 		n.Evaluate()
+
 		n.Statistics.Update(i, n)
 		if n.Config.Verbose {
 			n.Summarize(i)
@@ -354,7 +325,11 @@ func (n *NEAT) Run() {
 
 		// update the best genome
 		for _, genome := range n.Population {
-			n.HallOfFame.Update(genome, n.Comparison)
+			if n.Comparison(genome, n.Best) {
+				fmt.Printf("Current best fitness: %f\n", n.Best.Fitness)
+				fmt.Printf("Compared genome fitness: %f\n", genome.Fitness)
+				n.Best = genome
+			}
 		}
 	}
 }
