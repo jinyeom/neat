@@ -178,6 +178,9 @@ func (n *NEAT) Reproduce() {
 
 		// reproduction of this species is only executed, if there is enough room.
 		if numSurvived > 2 && numEliminated > 0 {
+			// adjust the fitness of each member genome of this species.
+			s.ExplicitFitnessSharing()
+
 			sort.Slice(s.Members, func(i, j int) bool {
 				return n.Comparison(s.Members[i], s.Members[j])
 			})
