@@ -27,9 +27,10 @@ type Config struct {
 	StagnationLimit int     `json:"stagnationLimit"` // limit of stagnation
 
 	// mutation rates settings
-	RatePerturb float64 `json:"ratePerturb"` // mutation by perturbing weights
-	RateAddNode float64 `json:"rateAddNode"` // mutation by adding a node
-	RateAddConn float64 `json:"rateAddConn"` // mutation by adding a connection
+	RatePerturb     float64 `json:"ratePerturb"`     // by perturbing weights
+	RateAddNode     float64 `json:"rateAddNode"`     // by adding a node
+	RateAddConn     float64 `json:"rateAddConn"`     // by adding a connection
+	RateMutateChild float64 `json:"rateMutateChild"` // mutation of a child
 
 	// compatibility distance coefficient settings
 	DistanceThreshold float64 `json:"distanceThreshold"` // distance threshold
@@ -76,7 +77,8 @@ func (c *Config) Summarize() {
 	fmt.Fprintf(w, "Mutation settings\t\n")
 	fmt.Fprintf(w, "+ Rate of perturbation of weights\t%.3f\t\n", c.RatePerturb)
 	fmt.Fprintf(w, "+ Rate of adding a node\t%.3f\t\n", c.RateAddNode)
-	fmt.Fprintf(w, "+ Rate of adding a connection\t%.3f\t\n\n", c.RateAddConn)
+	fmt.Fprintf(w, "+ Rate of adding a connection\t%.3f\t\n", c.RateAddConn)
+	fmt.Fprintf(w, "+ Rate of mutating a child\t%.3f\t\n\n", c.RateMutateChild)
 	fmt.Fprintf(w, "Compatibility distance settings\t\n")
 	fmt.Fprintf(w, "+ Distance threshold\t%.3f\t\n", c.DistanceThreshold)
 	fmt.Fprintf(w, "+ Unmatching connection genes\t%.3f\t\n", c.CoeffUnmatching)

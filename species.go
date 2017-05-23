@@ -45,6 +45,18 @@ func (s *Species) Register(g *Genome, minimizeFitness bool) {
 	}
 }
 
+// ExplicitFitnessSharing adjust this species' members fitness via explicit
+// fitness sharing.
+func (s *Species) ExplicitFitnessSharing() {
+	for _, genome := range s.Members {
+		// do not let its fitness be negative
+		if genome.Fitness < 0.0 {
+			genome.Fitness = 0.0001
+		}
+		genome.Fitness /= float64(len(s.Members))
+	}
+}
+
 // Flush empties the species membership, except for its representative.
 func (s *Species) Flush() {
 	s.Members = []*Genome{}
