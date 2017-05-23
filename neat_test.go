@@ -28,6 +28,11 @@ func NEATUnitTest() {
 	configPole.Summarize()
 	n1 := New(configPole, PoleBalancingTest(false, 120000))
 	n1.Run()
+
+	fmt.Println("\x1b[32m=Testing NEAT with pole balancing (random)...\x1b[0m")
+	configPole.Summarize()
+	n2 := New(configPole, PoleBalancingTest(true, 120000))
+	n2.Run()
 }
 
 func TestNEAT(t *testing.T) {
