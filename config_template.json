@@ -13,6 +13,7 @@
 	"ratePerturb": 0.0,
 	"rateAddNode": 0.0,
 	"rateAddConn": 0.0,
+	"rateMutateChild": 0.0,
 	"distanceThreshold": 0.0,
 	"coeffUnmatching": 0.0,
 	"coeffMatching": 0.0

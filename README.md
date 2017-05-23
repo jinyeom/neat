@@ -3,7 +3,9 @@
 
 NEAT (NeuroEvolution of Augmenting Topologies) is a neuroevolution algorithm by 
 Dr. Kenneth O. Stanley which evolves not only neural networks' weights but also their 
-topologies. 
+topologies. This method starts the evolution process with genomes with minimal structure,
+then complexifies the structure of each genome as it progresses. You can read the original
+paper from [here](http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf).
 
 ## Installation
 To install `neat` run the following:
@@ -34,6 +36,7 @@ run.
 	"ratePerturb": 0.2,
 	"rateAddNode": 0.2,
 	"rateAddConn": 0.2,
+	"rateMutateChild": 0.5,
 	"distanceThreshold": 20.0,
 	"coeffUnmatching": 1.0,
 	"coeffMatching": 1.0
