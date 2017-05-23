@@ -21,6 +21,8 @@ run.
 
 ```json
 {
+	"experimentName": "XOR Test"
+	"verbose": true,
 	"numInputs": 3,
 	"numOutputs": 1,
 	"numGenerations": 50,
@@ -28,7 +30,7 @@ run.
 	"initFitness": 9999.0,
 	"minimizeFitness": true,
 	"survivalRate": 0.5,
-	"hallOfFameSize": 10,
+	"stagnationLimit": 5,
 	"ratePerturb": 0.2,
 	"rateAddNode": 0.2,
 	"rateAddConn": 0.2,
@@ -68,53 +70,7 @@ func main() {
 	// fitness score. With the configuration and the evaluation function we
 	// defined, we can create a new instance of NEAT and start the evolution 
 	// process.
-	//
-	// By passing true as an argument of Run(), we can also observe the progress
-	// by generations.
-	neat.New(config, func(n *neat.NeuralNetwork) float64 {
-		score := 0.0
-
-		inputs := make([]float64, 3)
-		inputs[0] = 1.0 // bias
-
-		// 0 xor 0
-		inputs[1] = 0.0
-		inputs[2] = 0.0
-		output, err := n.FeedForward(inputs)
-		if err != nil {
-			log.Fatal(err)
-		}
-		score += math.Pow((output[0] - 0.0), 2.0)
-
-		// 0 xor 1
-		inputs[1] = 0.0
-		inputs[2] = 1.0
-		output, err = n.FeedForward(inputs)
-		if err != nil {
-			log.Fatal(err)
-		}
-		score += math.Pow((output[0] - 1.0), 2.0)
-
-		// 1 xor 0
-		inputs[1] = 1.0
-		inputs[2] = 0.0
-		output, err = n.FeedForward(inputs)
-		if err != nil {
-			log.Fatal(err)
-		}
-		score += math.Pow((output[0] - 1.0), 2.0)
-
-		// 1 xor 1
-		inputs[1] = 1.0
-		inputs[2] = 1.0
-		output, err = n.FeedForward(inputs)
-		if err != nil {
-			log.Fatal(err)
-		}
-		score += math.Pow((output[0] - 0.0), 2.0)
-
-		return score
-	}).Run(true)
+	neat.New(config, neat.XORTest()).Run()
 }
 
 ```
