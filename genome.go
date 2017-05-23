@@ -94,7 +94,8 @@ type Genome struct {
 	NodeGenes []*NodeGene `json:"nodeGenes"` // nodes in the genome
 	ConnGenes []*ConnGene `json:"connGenes"` // connections in the genome
 	Fitness   float64     `json:"fitness"`   // fitness score
-	evaluated bool        `json:"-"`         // true if already evaluated
+
+	evaluated bool // true if already evaluated
 }
 
 // NewGenome returns an instance of initial Genome with fully connected input
