@@ -94,7 +94,7 @@ type Genome struct {
 	NodeGenes []*NodeGene `json:"nodeGenes"` // nodes in the genome
 	ConnGenes []*ConnGene `json:"connGenes"` // connections in the genome
 	Fitness   float64     `json:"fitness"`   // fitness score
-	evaluated bool        `json:"evaluated"` // true if already evaluated
+	evaluated bool        `json:"-"`         // true if already evaluated
 }
 
 // NewGenome returns an instance of initial Genome with fully connected input
@@ -353,7 +353,7 @@ func Compatibility(g0, g1 *Genome, c0, c1 float64) float64 {
 }
 
 // ComparisonFunc is a type of function that returns a boolean value that
-// indicates whether the first arugment genome is better than the second one
+// indicates whether the first argument genome is better than the second one
 // in terms of its fitness.
 type ComparisonFunc func(g0, g1 *Genome) bool
 
