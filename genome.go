@@ -174,6 +174,8 @@ func (g *Genome) Evaluate(evaluate EvaluationFunc, lamarckian bool) {
 	g.Fitness = evaluate(nn)
 	g.evaluated = true
 
+	// for Lamarckian evolution, any changes to the neural network's weights are
+	// encoded back to the genome's connection genes.
 	if lamarckian {
 		for _, to := range nn.Neurons {
 			for from, weight := range to.Synapses {
