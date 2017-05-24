@@ -22,6 +22,12 @@ import (
 	"sort"
 )
 
+// Network defines a phenotype network that feed forwards inputs and returns
+// outputs.
+type Network interface {
+	FeedForward([]float64) ([]float64, error)
+}
+
 // Neuron is an implementation of a single neuron of a neural network.
 type Neuron struct {
 	ID         int                 // neuron ID
@@ -154,3 +160,7 @@ func (n *NeuralNetwork) FeedForward(inputs []float64) ([]float64, error) {
 
 	return outputs, nil
 }
+
+// CPPN is an alias type of NeuralNetwork; there is no functional difference
+// between CPPN and NeuralNetwork, i.e., CPPN type is purely symbolic.
+type CPPN *NeuralNetwork
