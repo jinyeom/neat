@@ -2,6 +2,7 @@ package neat
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"testing"
 )
