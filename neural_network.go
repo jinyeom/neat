@@ -19,6 +19,7 @@ package neat
 
 import (
 	"fmt"
+	"math"
 	"sort"
 )
 
@@ -28,8 +29,8 @@ type Neuron struct {
 	Type        string              // neuron type
 	Signal      float64             // signal held by this neuron
 	Delta       float64             // signal held by this neuron
-	InSynapses  map[*Neuron]float64 // synapse from input neurons
-	OutSynapses map[*Neuron]float64 // synapse from output neurons
+	SynapsesIn  map[*Neuron]float64 // synapse from input neurons
+	SynapsesOut map[*Neuron]float64 // synapse from output neurons
 	Activation  *ActivationFunc     // activation function
 
 	activated  bool // true if it has been activated
@@ -43,8 +44,8 @@ func NewNeuron(nodeGene *NodeGene) *Neuron {
 		Type:        nodeGene.Type,
 		Signal:      0.0,
 		Delta:       0.0,
-		InSynapses:  make(map[*Neuron]float64),
-		OutSynapses: make(map[*Neuron]float64),
+		SynapsesIn:  make(map[*Neuron]float64),
+		SynapsesOut: make(map[*Neuron]float64),
 		Activation:  nodeGene.Activation,
 		activated:   false,
 		propagated:  false,
@@ -53,11 +54,11 @@ func NewNeuron(nodeGene *NodeGene) *Neuron {
 
 // String returns the string representation of Neuron.
 func (n *Neuron) String() string {
-	if len(n.InSynapses) == 0 {
+	if len(n.SynapsesIn) == 0 {
 		return fmt.Sprintf("[%s(%d, %s)]", n.Type, n.ID, n.Activation.Name)
 	}
 	str := fmt.Sprintf("[%s(%d, %s)] (\n", n.Type, n.ID, n.Activation.Name)
-	for neuron, weight := range n.Synapses {
+	for neuron, weight := range n.SynapsesIn {
 		str += fmt.Sprintf("  <--{%.3f}--[%s(%d, %s)]\n",
 			weight, neuron.Type, neuron.ID, neuron.Activation.Name)
 	}
@@ -69,13 +70,13 @@ func (n *Neuron) String() string {
 func (n *Neuron) Activate() float64 {
 	// if the neuron's already activated, or it isn't connected from any neurons,
 	// return its current signal.
-	if n.activated || len(n.Synapses) == 0 {
+	if n.activated || len(n.SynapsesIn) == 0 {
 		return n.Signal
 	}
 	n.activated = true
 
 	inputSum := 0.0
-	for neuron, weight := range n.Synapses {
+	for neuron, weight := range n.SynapsesIn {
 		inputSum += neuron.Activate() * weight
 	}
 	n.Signal = n.Activation.Fn(inputSum)
@@ -87,13 +88,13 @@ func (n *Neuron) Activate() float64 {
 func (n *Neuron) Propagate() float64 {
 	// if the neuron's already activated, or it isn't connected from any neurons,
 	// return its current signal.
-	if n.propagated || len(n.OutSynapses) == 0 {
+	if n.propagated || len(n.SynapsesOut) == 0 {
 		return n.Delta
 	}
 	n.propagated = true
 
 	errorSum := 0.0
-	for neuron, weight := range n.OutSynapses {
+	for neuron, weight := range n.SynapsesOut {
 		errorSum += neuron.Propagate() * weight
 	}
 	n.Delta = n.Activation.DFn(n.Signal) * errorSum
@@ -104,10 +105,10 @@ func (n *Neuron) Propagate() float64 {
 // (alpha). This method must be called after the neuron's delta value is already
 // updated.
 func (n *Neuron) UpdateWeights(lr float64) {
-	for neuron, weight := range n.InSynapses {
+	for neuron, weight := range n.SynapsesIn {
 		updated := weight - lr*neuron.Signal*n.Delta
-		n.InSynapses[neuron] = updated
-		neuron.OutSynapses[n] = updated
+		n.SynapsesIn[neuron] = updated
+		neuron.SynapsesOut[n] = updated
 	}
 }
 
@@ -126,7 +127,7 @@ func NewNeuralNetwork(g *Genome) *NeuralNetwork {
 		return g.NodeGenes[i].ID < g.NodeGenes[j].ID
 	})
 
-	inputsNeurons := make([]*Neuron, 0, len(g.NodeGenes))
+	inputNeurons := make([]*Neuron, 0, len(g.NodeGenes))
 	outputNeurons := make([]*Neuron, 0, len(g.NodeGenes))
 	neurons := make([]*Neuron, 0, len(g.NodeGenes))
 
@@ -140,7 +141,7 @@ func NewNeuralNetwork(g *Genome) *NeuralNetwork {
 			outputNeurons = append(outputNeurons, neuron)
 		}
 
-		neurons = append(neurons, NewNeuron(nodeGene))
+		neurons = append(neurons, neuron)
 	}
 
 	for _, connGene := range g.ConnGenes {
@@ -151,8 +152,8 @@ func NewNeuralNetwork(g *Genome) *NeuralNetwork {
 				if out := sort.Search(len(neurons), func(i int) bool {
 					return neurons[i].ID >= connGene.To
 				}); out < len(neurons) && neurons[out].ID == connGene.To {
-					neurons[out].InSynapses[neurons[in]] = connGene.Weight
-					neurons[in].OutSynapses[neurons[out]] = connGene.Weight
+					neurons[out].SynapsesIn[neurons[in]] = connGene.Weight
+					neurons[in].SynapsesOut[neurons[out]] = connGene.Weight
 				}
 			}
 		}
@@ -173,7 +174,7 @@ func (n *NeuralNetwork) String() string {
 // FeedForward propagates inputs signals from input neurons to output neurons,
 // and return output signals.
 func (n *NeuralNetwork) FeedForward(inputs []float64) ([]float64, error) {
-	if len(inputs) != n.NumInputs {
+	if len(inputs) != len(n.InputNeurons) {
 		errStr := "Invalid number of inputs: %d != %d"
 		return nil, fmt.Errorf(errStr, len(n.InputNeurons), len(inputs))
 	}
@@ -184,7 +185,7 @@ func (n *NeuralNetwork) FeedForward(inputs []float64) ([]float64, error) {
 	}
 
 	// recursively propagate from input neurons to output neurons
-	outputs := make([]float64, 0, n.NumOutputs)
+	outputs := make([]float64, 0, len(n.OutputNeurons))
 	for _, neuron := range n.OutputNeurons {
 		outputs = append(outputs, neuron.Activate())
 	}
@@ -202,11 +203,11 @@ func (n *NeuralNetwork) Backprop(inputs, targets []float64,
 	learningRate float64) (float64, error) {
 	if len(targets) != len(n.OutputNeurons) {
 		errStr := "Invalid number of outputs %d != %d"
-		return fmt.Errorf(errStr, len(n.OutputNeurons), len(targets))
+		return -1.0, fmt.Errorf(errStr, len(n.OutputNeurons), len(targets))
 	}
 	outputs, err := n.FeedForward(inputs)
 	if err != nil {
-		return err
+		return -1.0, err
 	}
 
 	// mean square error
@@ -214,7 +215,7 @@ func (n *NeuralNetwork) Backprop(inputs, targets []float64,
 
 	// compute delta values
 	for i, neuron := range n.OutputNeurons {
-		outputErr := math.Pow(outputs[i]-target[i], 2.0)
+		outputErr := math.Pow(outputs[i]-targets[i], 2.0)
 		neuron.Delta = outputErr * neuron.Activation.DFn(outputs[i])
 		mse += outputErr
 	}
