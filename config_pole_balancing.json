@@ -4,7 +4,7 @@
 	"numInputs": 4,
 	"numOutputs": 2,
 	"numGenerations": 50,
-	"populationSize": 50,
+	"populationSize": 100,
 	"initFitness": 0.0,
 	"minimizeFitness": false,
 	"survivalRate": 0.5,
@@ -13,7 +13,7 @@
 	"rateAddNode": 0.1,
 	"rateAddConn": 0.1,
 	"rateMutateChild": 0.4,
-	"distanceThreshold": 5.0,
+	"distanceThreshold": 8.0,
 	"coeffUnmatching": 0.5,
 	"coeffMatching": 0.5
 }

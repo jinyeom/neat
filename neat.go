@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"runtime"
 	"sort"
 	"sync"
 )
@@ -121,11 +120,6 @@ func (n *NEAT) Summarize(gen int) {
 // Evaluate evaluates fitness of every genome in the population. After the
 // evaluation, their fitness scores are recored in each genome.
 func (n *NEAT) Evaluate() {
-	// for parallel processing; potentially, if there are the same number of CPUs
-	// as the population size, all genomes in the population can be evaluated at
-	// the same time.
-	runtime.GOMAXPROCS(n.Config.PopulationSize)
-
 	var wg sync.WaitGroup
 
 	for i := range n.Population {

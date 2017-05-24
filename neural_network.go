@@ -198,14 +198,15 @@ func (n *NeuralNetwork) FeedForward(inputs []float64) ([]float64, error) {
 	return outputs, nil
 }
 
-// Backprop
-func (n *NeuralNetwork) Backprop(inputs, targets []float64,
-	learningRate float64) (float64, error) {
-	if len(targets) != len(n.OutputNeurons) {
+// Learn takes a labeled data (x and y) and learns the mapping, given the
+// argument learning rate. It returns the mean square error (MSE) of the neural
+// network's output.
+func (n *NeuralNetwork) Learn(x, y []float64, lr float64) (float64, error) {
+	if len(y) != len(n.OutputNeurons) {
 		errStr := "Invalid number of outputs %d != %d"
-		return -1.0, fmt.Errorf(errStr, len(n.OutputNeurons), len(targets))
+		return -1.0, fmt.Errorf(errStr, len(n.OutputNeurons), len(y))
 	}
-	outputs, err := n.FeedForward(inputs)
+	outputs, err := n.FeedForward(x)
 	if err != nil {
 		return -1.0, err
 	}
@@ -215,7 +216,7 @@ func (n *NeuralNetwork) Backprop(inputs, targets []float64,
 
 	// compute delta values
 	for i, neuron := range n.OutputNeurons {
-		outputErr := math.Pow(outputs[i]-targets[i], 2.0)
+		outputErr := math.Pow(outputs[i]-y[i], 2.0)
 		neuron.Delta = outputErr * neuron.Activation.DFn(outputs[i])
 		mse += outputErr
 	}
@@ -225,7 +226,7 @@ func (n *NeuralNetwork) Backprop(inputs, targets []float64,
 		neuron.Propagate()
 	}
 	for _, neuron := range n.Neurons {
-		neuron.UpdateWeights(learningRate)
+		neuron.UpdateWeights(lr)
 	}
 
 	return mse / float64(len(n.OutputNeurons)), nil
