@@ -176,7 +176,7 @@ func (g *Genome) Evaluate(evaluate EvaluationFunc, lamarckian bool) {
 
 	if lamarckian {
 		for _, to := range nn.Neurons {
-			for from, weight := range neuron.Synapses {
+			for from, weight := range to.Synapses {
 				for _, conn := range g.ConnGenes {
 					if from.ID == conn.From && to.ID == conn.To {
 						conn.Weight = weight

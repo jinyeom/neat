@@ -112,9 +112,7 @@ func (c *Config) Summarize() {
 
 	fmt.Fprintf(w, "Miscellaneous settings\t\n")
 	fmt.Fprintf(w, "+ Lamarckian evolution\t%t\t\n", c.Lamarckian)
-	if len(c.CPPNActivations) != 0 {
-		fmt.Fprintf(w, "+ CPPN Activation functions\t%s\t\n", c.CPPNActivations)
-	}
+	fmt.Fprintf(w, "+ CPPN Activation functions\t%s\t\n", c.CPPNActivations)
 
 	w.Flush()
 }

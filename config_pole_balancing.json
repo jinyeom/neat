@@ -15,10 +15,5 @@
 	"rateMutateChild": 0.4,
 	"distanceThreshold": 5.0,
 	"coeffUnmatching": 0.5,
-	"coeffMatching": 0.5,
-	"cppnActivations": [
-		"tanh",
-		"sin",
-		"gaussian"
-	]
+	"coeffMatching": 0.5
 }
