@@ -22,12 +22,6 @@ import (
 	"sort"
 )
 
-// Network defines a phenotype network that feed forwards inputs and returns
-// outputs.
-type Network interface {
-	FeedForward([]float64) ([]float64, error)
-}
-
 // Neuron is an implementation of a single neuron of a neural network.
 type Neuron struct {
 	ID         int                 // neuron ID
@@ -35,7 +29,8 @@ type Neuron struct {
 	Signal     float64             // signal held by this neuron
 	Synapses   map[*Neuron]float64 // synapse from input neurons
 	Activation *ActivationFunc     // activation function
-	activated  bool                // true if it has been activated
+
+	activated bool // true if it has been activated
 }
 
 // NewNeuron returns a new instance of neuron, given a node gene.
@@ -84,9 +79,9 @@ func (n *Neuron) Activate() float64 {
 // NeuralNetwork is an implementation of the phenotype neural network that is
 // decoded from a genome.
 type NeuralNetwork struct {
-	NumInputs  int       // number of inputs
-	NumOutputs int       // number of outputs
-	Neurons    []*Neuron // neurons in the neural network
+	InputNeurons  []*Neuron // input neurons
+	OutputNeurons []*Neuron // output neurons
+	Neurons       []*Neuron // all neurons in the network
 }
 
 // NewNeuralNetwork returns a new instance of NeuralNetwork given a genome to
@@ -96,17 +91,21 @@ func NewNeuralNetwork(g *Genome) *NeuralNetwork {
 		return g.NodeGenes[i].ID < g.NodeGenes[j].ID
 	})
 
-	numInputs := 0
-	numOutputs := 0
-
+	inputNeurons := make([]*Neuron, 0, len(g.NodeGenes))
+	outputNeurons := make([]*Neuron, 0, len(g.NodeGenes))
 	neurons := make([]*Neuron, 0, len(g.NodeGenes))
+
 	for _, nodeGene := range g.NodeGenes {
+		neuron := NewNeuron(nodeGene)
+
+		// record input and output neurons separately
 		if nodeGene.Type == "input" {
-			numInputs++
+			inputNeurons = append(inputNeurons, neuron)
 		} else if nodeGene.Type == "output" {
-			numOutputs++
+			outputNeurons = append(outputNeurons, neuron)
 		}
-		neurons = append(neurons, NewNeuron(nodeGene))
+
+		neurons = append(neurons, neuron)
 	}
 
 	for _, connGene := range g.ConnGenes {
@@ -122,12 +121,13 @@ func NewNeuralNetwork(g *Genome) *NeuralNetwork {
 			}
 		}
 	}
-	return &NeuralNetwork{numInputs, numOutputs, neurons}
+	return &NeuralNetwork{inputNeurons, outputNeurons, neurons}
 }
 
 // String returns the string representation of NeuralNetwork.
 func (n *NeuralNetwork) String() string {
-	str := fmt.Sprintf("NeuralNetwork(%d, %d):\n", n.NumInputs, n.NumOutputs)
+	str := fmt.Sprintf("NeuralNetwork(%d, %d):\n",
+		len(n.InputNeurons), len(n.OutputNeurons))
 	for _, neuron := range n.Neurons {
 		str += neuron.String() + "\n"
 	}
@@ -137,20 +137,20 @@ func (n *NeuralNetwork) String() string {
 // FeedForward propagates inputs signals from input neurons to output neurons,
 // and return output signals.
 func (n *NeuralNetwork) FeedForward(inputs []float64) ([]float64, error) {
-	if len(inputs) != n.NumInputs {
+	if len(inputs) != len(n.InputNeurons) {
 		errStr := "Invalid number of inputs: %d != %d"
-		return nil, fmt.Errorf(errStr, n.NumInputs, len(inputs))
+		return nil, fmt.Errorf(errStr, len(n.InputNeurons), len(inputs))
 	}
 
 	// register sensor inputs
-	for i := 0; i < n.NumInputs; i++ {
-		n.Neurons[i].Signal = inputs[i]
+	for i, neuron := range n.InputNeurons {
+		neuron.Signal = inputs[i]
 	}
 
 	// recursively propagate from input neurons to output neurons
-	outputs := make([]float64, 0, n.NumOutputs)
-	for i := n.NumInputs; i < n.NumInputs+n.NumOutputs; i++ {
-		outputs = append(outputs, n.Neurons[i].Activate())
+	outputs := make([]float64, 0, len(n.OutputNeurons))
+	for _, neuron := range n.OutputNeurons {
+		outputs = append(outputs, neuron.Activate())
 	}
 
 	// reset all neurons
@@ -160,7 +160,3 @@ func (n *NeuralNetwork) FeedForward(inputs []float64) ([]float64, error) {
 
 	return outputs, nil
 }
-
-// CPPN is an alias type of NeuralNetwork; there is no functional difference
-// between CPPN and NeuralNetwork, i.e., CPPN type is purely symbolic.
-type CPPN *NeuralNetwork
