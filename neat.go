@@ -49,8 +49,8 @@ func New(config *Config, evaluation EvaluationFunc) *NEAT {
 
 	// in order to prevent containing multiple of the same activation function
 	// in the set of activation functions, they will temporarily be added to a
-	// map first, which contains Sigmoid function as a default, then be transfered
-	// to a slice of ActivationFunc.
+	// map first, which contains Sigmoid function as a default, then be
+	// transferred to a slice of ActivationFunc.
 	temp := map[string]*ActivationFunc{
 		"sigmoid": Sigmoid(),
 	}
