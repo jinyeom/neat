@@ -32,7 +32,7 @@ type Config struct {
 	Verbose        bool   `json:"verbose"`        // verbose mode (terminal)
 
 	// neural network settings
-	NumInputs  int `json:"numInputs"`  // number of inputs (including bias)
+	NumInputs  int `json:"numInputs"`  // number of inputs
 	NumOutputs int `json:"numOutputs"` // number of outputs
 
 	// evolution settings
@@ -53,6 +53,9 @@ type Config struct {
 	DistanceThreshold float64 `json:"distanceThreshold"` // distance threshold
 	CoeffUnmatching   float64 `json:"coeffUnmatching"`   // unmatching genes
 	CoeffMatching     float64 `json:"coeffMatching"`     // matching genes
+
+	// CPPN-NEAT settings
+	CPPNActivations []string `json:"cppnActivations"` // additional activations
 }
 
 // NewConfigJSON creates a new instance of Config, given the name of a JSON file
@@ -78,12 +81,15 @@ func (c *Config) Summarize() {
 	fmt.Fprintf(w, "============================================\n")
 	fmt.Fprintf(w, "Summary of NEAT hyperparameter configuration\t\n")
 	fmt.Fprintf(w, "============================================\n")
+
 	fmt.Fprintf(w, "General settings\t\n")
 	fmt.Fprintf(w, "+ Experiment name\t%s\t\n", c.ExperimentName)
 	fmt.Fprintf(w, "+ Verbose mode\t%t\t\n\n", c.Verbose)
+
 	fmt.Fprintf(w, "Neural network settings\t\n")
 	fmt.Fprintf(w, "+ Number of inputs\t%d\t\n", c.NumInputs)
-	fmt.Fprintf(w, "+ Number of outputs \t%d\t\n\n", c.NumOutputs)
+	fmt.Fprintf(w, "+ Number of outputs\t%d\t\n\n", c.NumOutputs)
+
 	fmt.Fprintf(w, "General evolution settings\t\n")
 	fmt.Fprintf(w, "+ Number of generations\t%d\t\n", c.NumGenerations)
 	fmt.Fprintf(w, "+ Population size\t%d\t\n", c.PopulationSize)
@@ -91,14 +97,25 @@ func (c *Config) Summarize() {
 	fmt.Fprintf(w, "+ Fitness is being minimized\t%t\t\n", c.MinimizeFitness)
 	fmt.Fprintf(w, "+ Rate of survival each generation\t%.3f\t\n", c.SurvivalRate)
 	fmt.Fprintf(w, "+ Limit of species' stagnation\t%d\t\n\n", c.StagnationLimit)
+
 	fmt.Fprintf(w, "Mutation settings\t\n")
 	fmt.Fprintf(w, "+ Rate of perturbation of weights\t%.3f\t\n", c.RatePerturb)
 	fmt.Fprintf(w, "+ Rate of adding a node\t%.3f\t\n", c.RateAddNode)
 	fmt.Fprintf(w, "+ Rate of adding a connection\t%.3f\t\n", c.RateAddConn)
 	fmt.Fprintf(w, "+ Rate of mutating a child\t%.3f\t\n\n", c.RateMutateChild)
+
 	fmt.Fprintf(w, "Compatibility distance settings\t\n")
 	fmt.Fprintf(w, "+ Distance threshold\t%.3f\t\n", c.DistanceThreshold)
 	fmt.Fprintf(w, "+ Unmatching connection genes\t%.3f\t\n", c.CoeffUnmatching)
 	fmt.Fprintf(w, "+ Matching connection genes\t%.3f\t\n", c.CoeffMatching)
+
+	if len(c.CPPNActivations) != 0 {
+		fmt.Fprintf(w, "CPPN-NEAT settings\t\n")
+		fmt.Fprintf(w, "+ CPPN Activation functions:\t\n")
+		for _, name := range c.CPPNActivations {
+			fmt.Fprintf(w, "  - %s\t\n", name)
+		}
+	}
+
 	w.Flush()
 }

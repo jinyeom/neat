@@ -195,21 +195,24 @@ func (g *Genome) ExportJSON(format bool) error {
 	return nil
 }
 
-// Mutate mutates the genome in three ways, by perturbing each connection's
-// weight, by adding a node between two connected nodes, and by adding a
-// connection between two nodes that are not connected.
-func Mutate(g *Genome, ratePerturb, rateAddNode, rateAddConn float64) {
+// MutatePerturb mutates the genome by perturbation of its weights by the
+// argument rate.
+func (g *Genome) MutatePerturb(rate float64) {
 	// perturb connection weights
 	for _, conn := range g.ConnGenes {
-		if rand.Float64() < ratePerturb {
+		if rand.Float64() < rate {
 			g.evaluated = false
 			conn.Weight += rand.NormFloat64()
 		}
 	}
+}
 
+// MutateAddNode mutates the genome by adding a node with the argument
+// activation function.
+func (g *Genome) MutateAddNode(rate float64, activation *ActivationFunc) {
 	// add node between two connected nodes, by randomly selecting a connection;
 	// only applied if there are connections in the genome
-	if rand.Float64() < rateAddNode && len(g.ConnGenes) != 0 {
+	if rand.Float64() < rate && len(g.ConnGenes) != 0 {
 		g.evaluated = false
 
 		selected := g.ConnGenes[rand.Intn(len(g.ConnGenes))]
@@ -221,11 +224,14 @@ func Mutate(g *Genome, ratePerturb, rateAddNode, rateAddConn float64) {
 			NewConnGene(newNode.ID, selected.To, selected.Weight))
 		selected.Disabled = true
 	}
+}
 
+// MutateAddConn mutates the genome by adding a connection.
+func (g *Genome) MutateAddConn(rate float64) {
 	// add connection between two disconnected nodes; only applied if the selected
 	// nodes are not connected yet, and the resulting connection doesn't make the
 	// phenotype network recurrent
-	if rand.Float64() < rateAddConn {
+	if rand.Float64() < rate {
 		g.evaluated = false
 
 		selectedNode0 := g.NodeGenes[rand.Intn(len(g.NodeGenes))].ID

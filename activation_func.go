@@ -22,20 +22,25 @@ import (
 )
 
 var (
-	// ActivationSet is a set of functions that can be used as an activation
-	// function of a neuron.
+	// ActivationSet is a set of functions that can be used as activation
+	// functions by neurons.
 	ActivationSet = map[string]*ActivationFunc{
 		"identity": Identity(),
 		"sigmoid":  Sigmoid(),
+		"tanh":     Tanh(),
+		"sin":      Sin(),
+		"cos":      Cos(),
+		"relu":     ReLU(),
+		"log":      Log(),
+		"exp":      Exp(),
+		"abs":      Abs(),
+		"square":   Square(),
+		"cube":     Cube(),
+		"gaussian": Gaussian(0.0, 1.0),
 	}
 )
 
 // ActivationFunc is a wrapper type for activation functions.
-//
-// While in this package, usage of this type is limited to only two functions,
-// identity and sigmoid, as they are the only activation functions used in NEAT,
-// more variety of functions are included in neat/cppn package for applications
-// of CPPN-NEAT.
 type ActivationFunc struct {
 	Name string                  `json:"name"` // name of the function
 	Fn   func(x float64) float64 `json:"-"`    // activation function
@@ -58,6 +63,96 @@ func Sigmoid() *ActivationFunc {
 		Name: "Sigmoid",
 		Fn: func(x float64) float64 {
 			return 1.0 / (1.0 + math.Exp(-x))
+		},
+	}
+}
+
+// Tanh returns the hyperbolic tangent function as an activation function.
+func Tanh() *ActivationFunc {
+	return &ActivationFunc{
+		Name: "Tanh",
+		Fn:   math.Tanh,
+	}
+}
+
+// Sin returns the sin function as an activation function.
+func Sin() *ActivationFunc {
+	return &ActivationFunc{
+		Name: "Sine",
+		Fn:   math.Sin,
+	}
+}
+
+// Cos returns the cosine function as an activation function.
+func Cos() *ActivationFunc {
+	return &ActivationFunc{
+		Name: "Cosine",
+		Fn:   math.Cos,
+	}
+}
+
+// ReLU returns a rectifier linear unit as an activation function.
+func ReLU() *ActivationFunc {
+	return &ActivationFunc{
+		Name: "ReLU",
+		Fn: func(x float64) float64 {
+			return math.Max(x, 0.0)
+		},
+	}
+}
+
+// Log returns the log function as an activation function.
+func Log() *ActivationFunc {
+	return &ActivationFunc{
+		Name: "Log",
+		Fn:   math.Log,
+	}
+}
+
+// Exp returns the exponential function as an activation function.
+func Exp() *ActivationFunc {
+	return &ActivationFunc{
+		Name: "Exp",
+		Fn:   math.Exp,
+	}
+}
+
+// Abs returns the absolute value function as an activation function.
+func Abs() *ActivationFunc {
+	return &ActivationFunc{
+		Name: "Abs",
+		Fn:   math.Abs,
+	}
+}
+
+// Square returns the square function as an activation function.
+func Square() *ActivationFunc {
+	return &ActivationFunc{
+		Name: "Square",
+		Fn: func(x float64) float64 {
+			return x * x
+		},
+	}
+}
+
+// Cube returns the cube function as an activation function.
+func Cube() *ActivationFunc {
+	return &ActivationFunc{
+		Name: "Cube",
+		Fn: func(x float64) float64 {
+			return x * x * x
+		},
+	}
+}
+
+// Gaussian returns the Gaussian function as an activation function, given a
+// mean and a standard deviation.
+func Gaussian(mean, stdev float64) *ActivationFunc {
+	return &ActivationFunc{
+		Name: "Gaussian",
+		Fn: func(x float64) float64 {
+			return 1.0 / (stdev * math.Sqrt(2*math.Pi)) *
+				math.Exp(math.Pow((x-mean)/stdev, 2.0)/-2.0)
 		},
 	}
 }

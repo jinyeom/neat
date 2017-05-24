@@ -10,8 +10,12 @@ func NeuralNetworkUnitTest() {
 	fmt.Println("===== Neural Network Unit Test =====")
 
 	g0 := NewGenome(0, 3, 1, 0.0)
-	Mutate(g0, 1.0, 1.0, 1.0)
-	Mutate(g0, 1.0, 1.0, 1.0)
+	g0.MutatePerturb(1.0)
+	g0.MutateAddNode(1.0, ActivationSet["sigmoid"])
+	g0.MutateAddConn(1.0)
+	g0.MutatePerturb(1.0)
+	g0.MutateAddNode(1.0, ActivationSet["sigmoid"])
+	g0.MutateAddConn(1.0)
 	n0 := NewNeuralNetwork(g0)
 	fmt.Println(n0.String())
 

@@ -28,13 +28,14 @@ import (
 
 // NEAT is the implementation of NeuroEvolution of Augmenting Topology (NEAT).
 type NEAT struct {
-	Config     *Config        // configuration
-	Population []*Genome      // population of genome
-	Species    []*Species     // subpopulations of genomes grouped by species
-	Evaluation EvaluationFunc // evaluation function
-	Comparison ComparisonFunc // comparison function
-	Best       *Genome        // best genome
-	Statistics *Statistics    // statistics
+	Config      *Config           // configuration
+	Population  []*Genome         // population of genome
+	Species     []*Species        // species of subpopulation of genomes
+	Activations []*ActivationFunc // set of activation functions
+	Evaluation  EvaluationFunc    // evaluation function
+	Comparison  ComparisonFunc    // comparison function
+	Best        *Genome           // best genome
+	Statistics  *Statistics       // statistics
 
 	nextGenomeID  int // genome ID that is assigned to a newly created genome
 	nextSpeciesID int // species ID that is assigned to a newly created species
@@ -45,6 +46,24 @@ type NEAT struct {
 func New(config *Config, evaluation EvaluationFunc) *NEAT {
 	nextGenomeID := 0
 	nextSpeciesID := 0
+
+	// in order to prevent containing multiple of the same activation function
+	// in the set of activation functions, they will temporarily be added to a
+	// map first, which contains Sigmoid function as a default, then be transfered
+	// to a slice of ActivationFunc.
+	temp := map[string]*ActivationFunc{
+		"sigmoid": Sigmoid(),
+	}
+
+	// if more additional activation functions are needed,
+	for _, name := range config.CPPNActivations {
+		temp[name] = ActivationSet[name]
+	}
+
+	activations := make([]*ActivationFunc, 0, len(temp))
+	for _, afunc := range temp {
+		activations = append(activations, afunc)
+	}
 
 	population := make([]*Genome, config.PopulationSize)
 	for i := 0; i < config.PopulationSize; i++ {
@@ -62,6 +81,7 @@ func New(config *Config, evaluation EvaluationFunc) *NEAT {
 		Config:        config,
 		Population:    population,
 		Species:       species,
+		Activations:   activations,
 		Evaluation:    evaluation,
 		Comparison:    NewComparisonFunc(config.MinimizeFitness),
 		Best:          population[rand.Intn(config.PopulationSize)],
@@ -117,25 +137,6 @@ func (n *NEAT) Evaluate() {
 	}
 
 	wg.Wait()
-
-	// explicit fitness sharing
-	/*
-
-		for i, genome0 := range n.Population {
-			adjustment := 0.0
-			for _, genome1 := range append(n.Population[:i], n.Population[i+1:]...) {
-				if Compatibility(genome0, genome1, n.Config.CoeffUnmatching,
-					n.Config.CoeffMatching) <= n.Config.DistanceThreshold {
-					adjustment += 1.0
-				}
-			}
-
-			if adjustment != 0.0 {
-				genome0.Fitness /= adjustment
-			}
-		}
-
-	*/
 }
 
 // Speciate performs speciation of each genome. The speciation mechanism is as
@@ -214,13 +215,15 @@ func (n *NEAT) Reproduce() {
 				// mutate the child given the rate of mutation of children.
 				child := Crossover(n.nextGenomeID, p0, p1, n.Config.InitFitness)
 				if rand.Float64() < n.Config.RateMutateChild {
-					Mutate(child, n.Config.RatePerturb,
-						n.Config.RateAddNode, n.Config.RateAddConn)
+					child.MutatePerturb(n.Config.RatePerturb)
+					child.MutateAddNode(n.Config.RateAddNode, n.randActivationFunc())
+					child.MutateAddConn(n.Config.RateAddConn)
 				} else {
 					// if the two parents are identical, definitely mutate the child.
 					if p0.ID == p1.ID {
-						Mutate(child, n.Config.RatePerturb,
-							n.Config.RateAddNode, n.Config.RateAddConn)
+						child.MutatePerturb(n.Config.RatePerturb)
+						child.MutateAddNode(n.Config.RateAddNode, n.randActivationFunc())
+						child.MutateAddConn(n.Config.RateAddConn)
 					}
 				}
 				n.nextGenomeID++
@@ -230,15 +233,17 @@ func (n *NEAT) Reproduce() {
 
 			// mutate all the genomes that survived.
 			for _, genome := range s.Members {
-				Mutate(genome, n.Config.RatePerturb,
-					n.Config.RateAddNode, n.Config.RateAddConn)
+				genome.MutatePerturb(n.Config.RatePerturb)
+				genome.MutateAddNode(n.Config.RateAddNode, n.randActivationFunc())
+				genome.MutateAddConn(n.Config.RateAddConn)
 				nextGeneration = append(nextGeneration, genome)
 			}
 		} else {
 			// otherwise, they all survive, and mutate.
 			for _, genome := range s.Members {
-				Mutate(genome, n.Config.RatePerturb,
-					n.Config.RateAddNode, n.Config.RateAddConn)
+				genome.MutatePerturb(n.Config.RatePerturb)
+				genome.MutateAddNode(n.Config.RateAddNode, n.randActivationFunc())
+				genome.MutateAddConn(n.Config.RateAddConn)
 				nextGeneration = append(nextGeneration, genome)
 			}
 		}
@@ -248,6 +253,12 @@ func (n *NEAT) Reproduce() {
 
 	// update the population with the new generation
 	n.Population = nextGeneration
+}
+
+// randActivationFunc is a helper function that returns a random activation
+// function.
+func (n *NEAT) randActivationFunc() *ActivationFunc {
+	return n.Activations[rand.Intn(len(n.Activations))]
 }
 
 // Run executes evolution.
