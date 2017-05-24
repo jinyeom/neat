@@ -98,8 +98,35 @@ type Genome struct {
 	evaluated bool // true if already evaluated
 }
 
-// NewGenome returns an instance of initial Genome with fully connected input
+// NewFCGenome returns an instance of initial Genome with fully connected input
 // and output layers.
+func NewFCGenome(id, numInputs, numOutputs int, initFitness float64) *Genome {
+	nodeGenes := make([]*NodeGene, 0, numInputs+numOutputs)
+	connGenes := make([]*ConnGene, 0, numInputs*numOutputs)
+
+	for i := 0; i < numInputs; i++ {
+		inputNode := NewNodeGene(i, "input", ActivationSet["identity"])
+		nodeGenes = append(nodeGenes, inputNode)
+	}
+	for i := numInputs; i < numInputs+numOutputs; i++ {
+		outputNode := NewNodeGene(i, "output", ActivationSet["sigmoid"])
+		for j := 0; j < numInputs; j++ {
+			c := NewConnGene(j, i, rand.NormFloat64()*6.0)
+			connGenes = append(connGenes, c)
+		}
+		nodeGenes = append(nodeGenes, outputNode)
+	}
+	return &Genome{
+		ID:        id,
+		SpeciesID: -1,
+		NodeGenes: nodeGenes,
+		ConnGenes: connGenes,
+		Fitness:   initFitness,
+		evaluated: false,
+	}
+}
+
+// NewGenome returns an instance of initial Genome with no initial connections.
 func NewGenome(id, numInputs, numOutputs int, initFitness float64) *Genome {
 	return &Genome{
 		ID:        id,

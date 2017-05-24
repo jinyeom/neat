@@ -32,8 +32,9 @@ type Config struct {
 	Verbose        bool   `json:"verbose"`        // verbose mode (terminal)
 
 	// neural network settings
-	NumInputs  int `json:"numInputs"`  // number of inputs
-	NumOutputs int `json:"numOutputs"` // number of outputs
+	NumInputs      int  `json:"numInputs"`      // number of inputs
+	NumOutputs     int  `json:"numOutputs"`     // number of outputs
+	FullyConnected bool `json:"fullyConnected"` // initially fully connected
 
 	// evolution settings
 	NumGenerations  int     `json:"numGenerations"`  // number of generations
@@ -89,7 +90,8 @@ func (c *Config) Summarize() {
 
 	fmt.Fprintf(w, "Neural network settings\t\n")
 	fmt.Fprintf(w, "+ Number of inputs\t%d\t\n", c.NumInputs)
-	fmt.Fprintf(w, "+ Number of outputs\t%d\t\n\n", c.NumOutputs)
+	fmt.Fprintf(w, "+ Number of outputs\t%d\t\n", c.NumOutputs)
+	fmt.Fprintf(w, "+ Fully connected\t%t\t\n\n", c.FullyConnected)
 
 	fmt.Fprintf(w, "General evolution settings\t\n")
 	fmt.Fprintf(w, "+ Number of generations\t%d\t\n", c.NumGenerations)

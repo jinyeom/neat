@@ -65,10 +65,18 @@ func New(config *Config, evaluation EvaluationFunc) *NEAT {
 	}
 
 	population := make([]*Genome, config.PopulationSize)
-	for i := 0; i < config.PopulationSize; i++ {
-		population[i] = NewGenome(nextGenomeID, config.NumInputs,
-			config.NumOutputs, config.InitFitness)
-		nextGenomeID++
+	if config.FullyConnected {
+		for i := 0; i < config.PopulationSize; i++ {
+			population[i] = NewFCGenome(nextGenomeID, config.NumInputs,
+				config.NumOutputs, config.InitFitness)
+			nextGenomeID++
+		}
+	} else {
+		for i := 0; i < config.PopulationSize; i++ {
+			population[i] = NewGenome(nextGenomeID, config.NumInputs,
+				config.NumOutputs, config.InitFitness)
+			nextGenomeID++
+		}
 	}
 
 	// initialize the first species with a randomly selected genome
@@ -83,7 +91,7 @@ func New(config *Config, evaluation EvaluationFunc) *NEAT {
 		Activations:   activations,
 		Evaluation:    evaluation,
 		Comparison:    NewComparisonFunc(config.MinimizeFitness),
-		Best:          population[rand.Intn(config.PopulationSize)],
+		Best:          population[rand.Intn(config.PopulationSize)].Copy(),
 		Statistics:    NewStatistics(config.NumGenerations),
 		nextGenomeID:  nextGenomeID,
 		nextSpeciesID: nextSpeciesID,
@@ -96,15 +104,9 @@ func (n *NEAT) Summarize(gen int) {
 	tmpl := "Gen. %4d | Num. Species: %4d | Best Fitness: %.4f | " +
 		"Avg. Fitness: %.4f"
 
-	// average fitness of this generation
-	avgFitness := 0.0
-	for _, genome := range n.Population {
-		avgFitness += genome.Fitness
-	}
-	avgFitness /= float64(n.Config.PopulationSize)
-
 	// compose each line of summary and the spacing of separating line
-	str := fmt.Sprintf(tmpl, gen, len(n.Species), n.Best.Fitness, avgFitness)
+	str := fmt.Sprintf(tmpl, gen, len(n.Species),
+		n.Best.Fitness, n.Statistics.AvgFitness[gen])
 	spacing := int(math.Max(float64(len(str)), 80.0))
 
 	for i := 0; i < spacing; i++ {
@@ -265,11 +267,6 @@ func (n *NEAT) Run() {
 	for i := 0; i < n.Config.NumGenerations; i++ {
 		n.Evaluate()
 
-		n.Statistics.Update(i, n)
-		if n.Config.Verbose {
-			n.Summarize(i)
-		}
-
 		// speciate genomes and reproduce children genomes
 		n.Speciate()
 		n.Reproduce()
@@ -291,6 +288,11 @@ func (n *NEAT) Run() {
 			if n.Comparison(genome, n.Best) {
 				n.Best = genome.Copy()
 			}
+		}
+
+		n.Statistics.Update(i, n)
+		if n.Config.Verbose {
+			n.Summarize(i)
 		}
 	}
 }
