@@ -107,14 +107,14 @@ func (c *Config) Summarize() {
 	fmt.Fprintf(w, "Compatibility distance settings\t\n")
 	fmt.Fprintf(w, "+ Distance threshold\t%.3f\t\n", c.DistanceThreshold)
 	fmt.Fprintf(w, "+ Unmatching connection genes\t%.3f\t\n", c.CoeffUnmatching)
-	fmt.Fprintf(w, "+ Matching connection genes\t%.3f\t\n", c.CoeffMatching)
+	fmt.Fprintf(w, "+ Matching connection genes\t%.3f\t\n\n", c.CoeffMatching)
 
 	if len(c.CPPNActivations) != 0 {
 		fmt.Fprintf(w, "CPPN-NEAT settings\t\n")
-		fmt.Fprintf(w, "+ CPPN Activation functions:\t\n")
-		for _, name := range c.CPPNActivations {
-			fmt.Fprintf(w, "  - %s\t\n", name)
-		}
+		fmt.Fprintf(w, "+ CPPN Activation functions\t%s\t\n", c.CPPNActivations)
+		// for _, name := range c.CPPNActivations {
+		// 	fmt.Fprintf(w, "  - %s\t\n", name)
+		// }
 	}
 
 	w.Flush()
