@@ -132,7 +132,7 @@ func (n *NEAT) Evaluate() {
 		wg.Add(1)
 		go func(j int) {
 			defer wg.Done()
-			n.Population[j].Evaluate(n.Evaluation)
+			n.Population[j].Evaluate(n.Evaluation, n.Config.Lamarckian)
 		}(i)
 	}
 
