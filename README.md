@@ -29,6 +29,7 @@ run.
 	"verbose": true,
 	"numInputs": 3,
 	"numOutputs": 1,
+	"fullyConnected": false,
 	"numGenerations": 50,
 	"populationSize": 100,
 	"initFitness": 9999.0,
@@ -41,7 +42,9 @@ run.
 	"rateMutateChild": 0.5,
 	"distanceThreshold": 20.0,
 	"coeffUnmatching": 1.0,
-	"coeffMatching": 1.0
+	"coeffMatching": 1.0,
+	"cppnActivations": [],
+	"lamarckian": false
 }
 ```
 
