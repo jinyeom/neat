@@ -193,27 +193,13 @@ func (g *Genome) String() string {
 // Evaluate takes an evaluation function and evaluates its fitness. Only perform
 // the evaluation if it hasn't yet. If the lamarckian indicator is true, encode
 // the phenotype neural network back into the genome.
-func (g *Genome) Evaluate(evaluate EvaluationFunc, lamarckian bool) {
+func (g *Genome) Evaluate(evaluate EvaluationFunc) {
 	if g.evaluated {
 		return
 	}
 	nn := NewNeuralNetwork(g)
 	g.Fitness = evaluate(nn)
 	g.evaluated = true
-
-	// for Lamarckian evolution, any changes to the neural network's weights are
-	// encoded back to the genome's connection genes.
-	if lamarckian {
-		for _, to := range nn.Neurons {
-			for from, weight := range to.Synapses {
-				for _, conn := range g.ConnGenes {
-					if from.ID == conn.From && to.ID == conn.To {
-						conn.Weight = weight
-					}
-				}
-			}
-		}
-	}
 }
 
 // ExportJSON exports a JSON file that contains this genome's information. If

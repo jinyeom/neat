@@ -4,7 +4,7 @@
 	"numInputs": 4,
 	"numOutputs": 2,
 	"fullyConnected": false,
-	"numGenerations": 50,
+	"numGenerations": 30,
 	"populationSize": 100,
 	"initFitness": 0.0,
 	"minimizeFitness": false,

@@ -9,7 +9,6 @@
 	"minimizeFitness": false,
 	"survivalRate": 0.0,
 	"stagnationLimit": 0,
-	"hallOfFameSize": 0,
 	"ratePerturb": 0.0,
 	"rateAddNode": 0.0,
 	"rateAddConn": 0.0,

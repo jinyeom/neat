@@ -55,8 +55,7 @@ type Config struct {
 	CoeffUnmatching   float64 `json:"coeffUnmatching"`   // unmatching genes
 	CoeffMatching     float64 `json:"coeffMatching"`     // matching genes
 
-	// Miscellaneous settings
-	Lamarckian      bool     `json:"lamarckian"`      // Lamarckian evolution
+	// CPPN settings
 	CPPNActivations []string `json:"cppnActivations"` // additional activations
 }
 
@@ -112,8 +111,7 @@ func (c *Config) Summarize() {
 	fmt.Fprintf(w, "+ Unmatching connection genes\t%.3f\t\n", c.CoeffUnmatching)
 	fmt.Fprintf(w, "+ Matching connection genes\t%.3f\t\n\n", c.CoeffMatching)
 
-	fmt.Fprintf(w, "Miscellaneous settings\t\n")
-	fmt.Fprintf(w, "+ Lamarckian evolution\t%t\t\n", c.Lamarckian)
+	fmt.Fprintf(w, "CPPN settings\t\n")
 	fmt.Fprintf(w, "+ CPPN Activation functions\t%s\t\n", c.CPPNActivations)
 
 	w.Flush()
