@@ -79,9 +79,10 @@ func (n *Neuron) Activate() float64 {
 // NeuralNetwork is an implementation of the phenotype neural network that is
 // decoded from a genome.
 type NeuralNetwork struct {
-	InputNeurons  []*Neuron // input neurons
-	OutputNeurons []*Neuron // output neurons
-	Neurons       []*Neuron // all neurons in the network
+	Neurons []*Neuron // all neurons in the network
+
+	inputNeurons  []*Neuron // input neurons
+	outputNeurons []*Neuron // output neurons
 }
 
 // NewNeuralNetwork returns a new instance of NeuralNetwork given a genome to
@@ -121,13 +122,13 @@ func NewNeuralNetwork(g *Genome) *NeuralNetwork {
 			}
 		}
 	}
-	return &NeuralNetwork{inputNeurons, outputNeurons, neurons}
+	return &NeuralNetwork{neurons, inputNeurons, outputNeurons}
 }
 
 // String returns the string representation of NeuralNetwork.
 func (n *NeuralNetwork) String() string {
 	str := fmt.Sprintf("NeuralNetwork(%d, %d):\n",
-		len(n.InputNeurons), len(n.OutputNeurons))
+		len(n.inputNeurons), len(n.outputNeurons))
 	for _, neuron := range n.Neurons {
 		str += neuron.String() + "\n"
 	}
@@ -137,19 +138,19 @@ func (n *NeuralNetwork) String() string {
 // FeedForward propagates inputs signals from input neurons to output neurons,
 // and return output signals.
 func (n *NeuralNetwork) FeedForward(inputs []float64) ([]float64, error) {
-	if len(inputs) != len(n.InputNeurons) {
+	if len(inputs) != len(n.inputNeurons) {
 		errStr := "Invalid number of inputs: %d != %d"
-		return nil, fmt.Errorf(errStr, len(n.InputNeurons), len(inputs))
+		return nil, fmt.Errorf(errStr, len(n.inputNeurons), len(inputs))
 	}
 
 	// register sensor inputs
-	for i, neuron := range n.InputNeurons {
+	for i, neuron := range n.inputNeurons {
 		neuron.Signal = inputs[i]
 	}
 
 	// recursively propagate from input neurons to output neurons
-	outputs := make([]float64, 0, len(n.OutputNeurons))
-	for _, neuron := range n.OutputNeurons {
+	outputs := make([]float64, 0, len(n.outputNeurons))
+	for _, neuron := range n.outputNeurons {
 		outputs = append(outputs, neuron.Activate())
 	}
 

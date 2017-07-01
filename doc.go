@@ -16,8 +16,7 @@
 /*
 Package neat provides an implementation of NeuroEvolution of Augmenting
 Topologies (NEAT) as a plug-and-play framework, which can be used by simply
-adding and appropriate configuration and an evaluation function. This package
-can also be extended to applications of CPPN-NEAT by using neat/cppn package.
+adding and appropriate configuration and an evaluation function.
 
 NEAT
 

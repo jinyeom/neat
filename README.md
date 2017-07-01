@@ -3,6 +3,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/jinyeom/neat)](https://goreportcard.com/report/github.com/jinyeom/neat)
 [![cover.run go](https://cover.run/go/github.com/jinyeom/neat.svg)](https://cover.run/go/github.com/jinyeom/neat)
 
+CURRENTLY NOT WORKING! There will be a further notice when it's updated.
+
 NEAT (NeuroEvolution of Augmenting Topologies) is a neuroevolution algorithm by 
 Dr. Kenneth O. Stanley which evolves not only neural networks' weights but also their 
 topologies. This method starts the evolution process with genomes with minimal structure,
@@ -44,7 +46,6 @@ run.
 	"coeffUnmatching": 1.0,
 	"coeffMatching": 1.0,
 	"cppnActivations": [],
-	"lamarckian": false
 }
 ```
 

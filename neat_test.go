@@ -20,6 +20,16 @@ func NEATUnitTest() {
 	n0 := New(configXOR, XORTest())
 	n0.Run()
 
+	nn := NewNeuralNetwork(n0.Best)
+	output, _ := nn.FeedForward([]float64{1.0, 1.0, 1.0})
+	fmt.Println(output)
+	output, _ = nn.FeedForward([]float64{1.0, 0.0, 1.0})
+	fmt.Println(output)
+	output, _ = nn.FeedForward([]float64{1.0, 1.0, 0.0})
+	fmt.Println(output)
+	output, _ = nn.FeedForward([]float64{1.0, 0.0, 0.0})
+	fmt.Println(output)
+
 	fmt.Println("\x1b[32m=Testing NEAT with pole balancing test...\x1b[0m")
 	configPole, err := NewConfigJSON("config_pole_balancing.json")
 	if err != nil {
