@@ -184,7 +184,7 @@ func (n *NEAT) Reproduce() {
 		// reproduction of this species is only executed, if there is enough room.
 		if numSurvived > 2 && numEliminated > 0 {
 			// adjust the fitness of each member genome of this species.
-			s.ExplicitFitnessSharing()
+			//s.ExplicitFitnessSharing()
 
 			sort.Slice(s.Members, func(i, j int) bool {
 				return n.Comparison(s.Members[i], s.Members[j])
@@ -248,8 +248,8 @@ func (n *NEAT) randActivationFunc() *ActivationFunc {
 	return n.Activations[rand.Intn(len(n.Activations))]
 }
 
-// Run executes evolution.
-func (n *NEAT) Run() {
+// Run executes evolution and return the best genome.
+func (n *NEAT) Run() *Genome {
 	if n.Config.Verbose {
 		n.Config.Summarize()
 	}
@@ -257,6 +257,18 @@ func (n *NEAT) Run() {
 	// for each generation
 	for i := 0; i < n.Config.NumGenerations; i++ {
 		n.Evaluate()
+
+		// update the best genome
+		for _, genome := range n.Population {
+			if n.Comparison(genome, n.Best) {
+				n.Best = genome.Copy()
+			}
+		}
+
+		n.Statistics.Update(i, n)
+		if n.Config.Verbose {
+			n.Summarize(i)
+		}
 
 		// speciate genomes and reproduce children genomes
 		n.Speciate()
@@ -273,17 +285,7 @@ func (n *NEAT) Run() {
 			}
 			n.Species = survived
 		}
-
-		// update the best genome
-		for _, genome := range n.Population {
-			if n.Comparison(genome, n.Best) {
-				n.Best = genome.Copy()
-			}
-		}
-
-		n.Statistics.Update(i, n)
-		if n.Config.Verbose {
-			n.Summarize(i)
-		}
 	}
+
+	return n.Best
 }

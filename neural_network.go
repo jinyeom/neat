@@ -156,6 +156,7 @@ func (n *NeuralNetwork) FeedForward(inputs []float64) ([]float64, error) {
 
 	// reset all neurons
 	for _, neuron := range n.Neurons {
+		neuron.Signal = 0.0
 		neuron.activated = false
 	}
 

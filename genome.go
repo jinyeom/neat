@@ -272,9 +272,35 @@ func (g *Genome) MutateAddConn(rate float64) {
 			}
 		}
 
-		newConn := NewConnGene(selectedNode0, selectedNode1, rand.NormFloat64()*6.0)
-		g.ConnGenes = append(g.ConnGenes, newConn)
+		if g.NodeGenes[selectedNode1].Type == "input" ||
+			g.NodeGenes[selectedNode0].Type == "output" {
+			return
+		}
+
+		if !g.pathExists(selectedNode1, selectedNode0) {
+			g.ConnGenes = append(g.ConnGenes, NewConnGene(selectedNode0,
+				selectedNode1, rand.NormFloat64()*6.0))
+		}
+
 	}
+}
+
+// pathExists returns true if there is a path from the source to the
+// destination. Helper method of MutateAddConn.
+func (g *Genome) pathExists(src, dst int) bool {
+	if src == dst {
+		return true
+	}
+
+	for _, edge := range g.ConnGenes {
+		if edge.From == src {
+			if g.pathExists(edge.To, dst) {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 // Crossover returns a new child genome by performing crossover between the two
