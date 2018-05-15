@@ -25,7 +25,7 @@ var (
 	// ActivationSet is a set of functions that can be used as activation
 	// functions by neurons.
 	ActivationSet = map[string]*ActivationFunc{
-		"identity": Identity(),
+		"linear":   Linear(),
 		"sigmoid":  Sigmoid(),
 		"tanh":     Tanh(),
 		"sin":      Sin(),
