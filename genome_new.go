@@ -173,6 +173,25 @@ func (g *Genome) ConnenctionGenes() []*ConnectionGene {
 	return g.connectionGenes
 }
 
-func (g *Genome) PushNode() {
-	g.nodeGene = append(g.nodeGene, n)
+// PushNode creates and appends a new node gene to this genome.
+func (g *Genome) Push(nodeType NodeType, activation ActivationFunc) *NodeGene {
+	nodeId := len(g.nodeGenes) // its new index is its ID
+	node := NewNodeGene(nodeId, nodeType, activation)
+	g.nodeGene = append(g.nodeGene, node)
+	return node
+}
+
+// Connect
+func (g *Genome) Connect(srcId, dstId int) error {
+	if outOfBounds(srcId) || outOfBounds(dstId) {
+		return errors.New("")
+	}
+}
+
+// helper function that checks if the argument node ID is within the range.
+func (g *Genome) outOfBounds(nodeId int) bool {
+	if 0 > nodeId || len(g.nodeGenes) <= nodeId {
+		return false
+	}
+	return true
 }
