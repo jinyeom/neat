@@ -47,7 +47,13 @@ func (n *NodeGene) Copy() *NodeGene {
 
 // String returns a string representation of the node.
 func (n *NodeGene) String() string {
-	return fmt.Sprintf("[%s(%d, %s)]", n.Type, n.ID, n.Activation.Name)
+	// github/@jesuicamille: if Activation is <nil>, print N/A
+	switch n.Activation {
+	case nil:
+		return fmt.Sprintf("[%s(%d, %s)]", n.Type, n.ID, "N/A")
+	default:
+		return fmt.Sprintf("[%s(%d, %s)]", n.Type, n.ID, n.Activation.Name)
+	}
 }
 
 // ConnGene is an implementation of a connection between two nodes in the graph
@@ -293,10 +299,19 @@ func (g *Genome) pathExists(src, dst int) bool {
 	}
 
 	for _, edge := range g.ConnGenes {
-		if edge.From == src {
-			if g.pathExists(edge.To, dst) {
-				return true
+		// github/@jesuiscamille: didn't understood this part.
+		// github/@jesuiscamille: I just modified to check if edge.To == dst
+
+		/*
+			if edge.From == src {
+				if g.pathExists(edge.To, dst) {
+					return true
+				}
 			}
+		*/
+
+		if edge.From == src && edge.To == dst {
+			return true
 		}
 	}
 

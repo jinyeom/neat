@@ -46,6 +46,16 @@ type ActivationFunc struct {
 	Fn   func(x float64) float64 `json:"-"`    // activation function
 }
 
+// Note from github/@jesuiscamille: adapted from activation.go
+func Linear() *ActivationFunc {
+	return &ActivationFunc{
+		Name: "linear",
+		Fn: func(x float64) float64 {
+			return x
+		},
+	}
+}
+
 // Identity returns the identity function as an activation
 // function. This function is only used for sensor nodes.
 func Identity() *ActivationFunc {
