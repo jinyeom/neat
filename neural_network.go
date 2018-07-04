@@ -48,12 +48,35 @@ func NewNeuron(nodeGene *NodeGene) *Neuron {
 // String returns the string representation of Neuron.
 func (n *Neuron) String() string {
 	if len(n.Synapses) == 0 {
-		return fmt.Sprintf("[%s(%d, %s)]", n.Type, n.ID, n.Activation.Name)
+		// github/@jesuicamille: if Activation is <nil>, print N/A
+		switch n.Activation {
+		case nil:
+			return fmt.Sprintf("[%s(%d, %s)]", n.Type, n.ID, "N/A")
+		default:
+			return fmt.Sprintf("[%s(%d, %s)]", n.Type, n.ID, n.Activation.Name)
+		}
 	}
-	str := fmt.Sprintf("[%s(%d, %s)] (\n", n.Type, n.ID, n.Activation.Name)
+
+	var str string
+
+	// github/@jesuicamille: if Activation is <nil>, print N/A
+	switch n.Activation {
+	case nil:
+		str = fmt.Sprintf("[%s(%d, %s)] (\n", n.Type, n.ID, "N/A")
+	default:
+		str = fmt.Sprintf("[%s(%d, %s)] (\n", n.Type, n.ID, n.Activation.Name)
+	}
+
 	for neuron, weight := range n.Synapses {
-		str += fmt.Sprintf("  <--{%.3f}--[%s(%d, %s)]\n",
-			weight, neuron.Type, neuron.ID, neuron.Activation.Name)
+		// github/@jesuicamille: if Activation is <nil>, print N/A
+		switch neuron.Activation {
+		case nil:
+			str += fmt.Sprintf("  <--{%.3f}--[%s(%d, %s)]\n",
+				weight, neuron.Type, neuron.ID, "N/A")
+		default:
+			str += fmt.Sprintf("  <--{%.3f}--[%s(%d, %s)]\n",
+				weight, neuron.Type, neuron.ID, neuron.Activation.Name)
+		}
 	}
 	return str + ")"
 }
